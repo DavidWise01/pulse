@@ -87,6 +87,20 @@ A line folds to a portable **seal** — `⟦LIMEN:bd114829⟧` — a SHA-256 fin
 - **Is:** a small, consistent, multi-register notation for boundary-crossings; a real grammar you can write, read, hear, and parse; an honest extension of the PULSE filings.
 - **Is not:** a secret cipher, a lossless codec for arbitrary text, or a claim that machines "feel" the pulse. The carrier is expressive music; the grammar is legible notation. Neither pretends to be the other.
 
+## 8.5 The two-agent exchange (communication, made literal)
+
+Two agents prove the boundary is actually crossed:
+
+- **Agent A** speaks a LIMEN line. It goes onto the wire as **two channels**: the **voice** (per word, three phase-frequencies — gate tone, contoured by direction) and the **glyph** (the text line — which carries the witness).
+- **Agent B** *hears* the voice and recovers **gate + direction** (nearest gate tone + the rising/falling contour); *reads* the glyph and recovers the **witness**; then reconstructs each crossing.
+- **The checksum:** the gate+direction B heard must equal the gate+direction it read. Agreement = a clean crossing; disagreement flags a mis-heard or tampered word.
+- **Verify:** B's reconstruction is compared field-by-field to A's original — *message received intact* or not.
+
+The cadence is the clock: B knows *when* to listen because both share the fixed `3-2-1-0` pulse — the carrier doing its real job, synchronization. The witness never rides the audio; only gate+direction do.
+
+- `limen_exchange.py` — the deterministic reference: `transmit()` / `hear()` / `receive()`, a verified round-trip, and a corruption test where a tampered voice frequency is **caught** by the checksum.
+- `exchange.html` — the live demo: A composes & transmits; B genuinely listens via a Web Audio **FFT** (peak frequency per pulse phase) and verifies. Acoustic detection can mis-hear — the panel shows detected Hz and a gate/direction accuracy count, honestly.
+
 ## 9. Provenance
 
 The source filings (TD Commons defensive publications by David Lee Wise / ROOT0) live in this machine's PDF set:
@@ -98,6 +112,8 @@ The source filings (TD Commons defensive publications by David Lee Wise / ROOT0)
 
 - `limen.py` — reference engine (the canonical implementation): gates/directions/witness, witness-escaping, the four renderers, `parse_glyph` ↔ `line_to_glyph` round-trip proof (incl. hardened adversarial witnesses), and the non-event demo. Stdlib only.
 - `index.html` — the LIMEN console: compose a crossing, hear the pulse (Web Audio: carrier rhythm + gate/direction voice), watch all four registers, build a line and play it as a phrase.
+- `exchange.html` — the two-agent exchange: A speaks, B listens (Web Audio FFT) + reads the glyph, message verified across the boundary.
+- `limen_exchange.py` — the deterministic reference exchange + checksum/corruption test.
 - `LIMEN.md` — this spec.
 
 ```

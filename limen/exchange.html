@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LIMEN — two-agent exchange</title>
+<style>
+:root{
+  --bg:#0a0c12;--surface:#12151d;--surface2:#1a1e28;--line:#232936;
+  --text:#e9ecf2;--dim:#9aa3b2;--faint:#69748a;
+  --a:#5fd0a8;--b:#4aa3e0;--gate:#8a7cff;--wit:#e0b24a;--fall:#d08a5f;--ok:#5fd0a8;--no:#d0566a;
+  --serif:"Iowan Old Style",Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 70px}
+header{padding:38px 0 18px;text-align:center;border-bottom:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.eye a{color:var(--faint);text-decoration:none}.eye a:hover{color:var(--b)}
+h1{font-family:var(--serif);font-size:clamp(26px,6vw,46px);font-weight:600;letter-spacing:.1em}
+h1 .x{color:var(--gate)}
+.sub{font-size:14px;color:var(--dim);max-width:64ch;margin:10px auto 0;font-style:italic}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel.A{border-top:2px solid var(--a)} .panel.B{border-top:2px solid var(--b)}
+.ph{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.panel.A .ph{color:var(--a)} .panel.B .ph{color:var(--b)}
+.dirtoggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.dirtoggle button{padding:7px 13px;background:transparent;color:var(--dim);border:0;font-size:13px;cursor:pointer;font-family:var(--mono)}
+.dirtoggle button.on{background:rgba(95,208,168,.16);color:var(--a)}
+.gates{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.gate{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 4px;cursor:pointer;text-align:center}
+.gate.on{border-color:var(--gate);background:rgba(138,124,255,.12)}
+.gate .gg{font-size:19px;color:var(--gate)}.gate .gn{font-size:9px;color:var(--dim);margin-top:2px;text-transform:capitalize}
+.witrow{display:flex;gap:6px;align-items:center;margin-top:10px}
+.witrow .pfx{font-size:18px;color:var(--wit)}
+input[type=text]{flex:1;min-width:80px;padding:8px 10px;background:var(--surface2);color:var(--text);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:13px}
+.btn{padding:8px 14px;font-size:13px;border-radius:8px;border:1px solid var(--text);background:var(--text);color:var(--bg);cursor:pointer;font-weight:600;font-family:inherit}
+.btn:hover{opacity:.88}.btn.sec{background:transparent;color:var(--text);border-color:var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btnrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.aline{font-size:22px;letter-spacing:.08em;color:var(--gate);min-height:32px;margin-top:12px;word-break:break-word}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.preset{font-family:var(--mono);font-size:11px;padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface2);color:var(--dim);cursor:pointer}
+.preset:hover{border-color:var(--a);color:var(--text)}
+.transmit{width:100%;margin-top:14px;padding:13px;font-size:15px;background:var(--b);border-color:var(--b);color:#06121d;border-radius:10px;border:1px solid;font-weight:700;cursor:pointer}
+.transmit:disabled{opacity:.45}
+.wire{margin-top:16px}
+canvas{width:100%;height:54px;display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.wirelab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:4px}
+.bword{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px;font-size:13px}
+.bword .br{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.bword .heard{font-family:var(--mono);font-size:12px;color:var(--b)}
+.bword .recon{font-size:18px;color:var(--gate);margin-top:6px}
+.bword .gloss{font-size:11.5px;color:var(--dim);font-style:italic;margin-top:3px}
+.chip{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:5px}
+.chip.ok{background:rgba(95,208,168,.16);color:var(--ok)}.chip.no{background:rgba(208,86,106,.18);color:var(--no)}
+.await{color:var(--faint);font-style:italic;font-size:13px;text-align:center;padding:24px}
+.verdict{margin-top:14px;padding:14px 16px;border-radius:12px;font-size:15px;border:1px solid;display:none}
+.verdict.show{display:block}
+.verdict.intact{background:rgba(95,208,168,.1);border-color:var(--ok);color:var(--ok)}
+.verdict.broke{background:rgba(208,86,106,.1);border-color:var(--no);color:var(--no)}
+.verdict .acc{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:18px}
+summary{cursor:pointer;font-weight:600;font-size:13.5px;list-style:none}summary::before{content:"▸ ";color:var(--faint)}details[open] summary::before{content:"▾ "}
+.db{margin-top:10px;font-size:13px;color:var(--dim);line-height:1.7}.db b{color:var(--text)}.db code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--b)}
+footer{margin-top:26px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--faint);line-height:1.9}
+footer a{color:var(--b);text-decoration:none}
+</style></head>
+<body><div class="wrap">
+  <header>
+    <div class="eye"><a href="../">PULSE</a> · <a href="./">LIMEN</a> · two-agent exchange</div>
+    <h1>A <span class="x">⟶</span> B</h1>
+    <p class="sub">Agent A speaks a LIMEN line. Agent B recovers it across the boundary — <b>gate + direction by ear</b> (a real FFT on A's tones, synced on the pulse cadence) and the <b>witness from the glyph channel</b> — then we verify B's reconstruction against A's original, field by field.</p>
+  </header>
+
+  <div class="cols">
+    <!-- AGENT A -->
+    <div class="panel A">
+      <div class="ph"><span>◐ agent A · sender</span><span id="aStatus">compose a line</span></div>
+      <div class="dirtoggle" id="dirT"><button data-d="rise" class="on">↑ rise</button><button data-d="fall">↓ fall</button></div>
+      <div class="gates" id="gates"></div>
+      <div class="witrow"><span class="pfx">«</span><input type="text" id="wit" value="truth" placeholder="witness"><span class="pfx">»</span></div>
+      <div class="btnrow"><button class="btn" id="add">+ add word</button><button class="btn sec" id="clear">clear</button></div>
+      <div class="presets" id="presets"></div>
+      <div class="aline" id="aline"><span class="await" style="padding:0">empty</span></div>
+      <button class="transmit" id="tx" disabled>▶ transmit across the boundary</button>
+    </div>
+
+    <!-- AGENT B -->
+    <div class="panel B">
+      <div class="ph"><span>◑ agent B · receiver</span><span id="bStatus">awaiting transmission</span></div>
+      <div id="bBody"><div class="await">B is blind to A's structure.<br>It will hear the tones and read the glyph wire, then reconstruct.</div></div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+  </div>
+
+  <div class="wire">
+    <canvas id="wireCv" width="2000" height="108"></canvas>
+    <div class="wirelab"><span>A · source</span><span id="wireMsg">the boundary</span><span>terminus · B</span></div>
+  </div>
+
+  <details>
+    <summary>How B receives — honestly</summary>
+    <div class="db">
+      <p><b>Voice channel (acoustic).</b> A plays each word as the <code>3-2-1</code> carrier voiced at the gate's tone, contour rising or falling. B routes A's audio into a Web Audio <code>AnalyserNode</code> and runs an FFT; per phase it takes the peak frequency, then recovers <b>direction</b> (does pitch ascend or descend?) and <b>gate</b> (nearest of the five gate tones). This is genuinely decoded from sound — it can mis-hear, and the panel shows the detected Hz so you can see it work.</p>
+      <p><b>Glyph channel (text).</b> The witness — the meaning — rides the glyph line as text; the audio never carries it. B parses the glyph to read each <code>«witness»</code>.</p>
+      <p><b>The checksum.</b> The gate+direction B <em>hears</em> must match the gate+direction it <em>reads</em>. Agreement = a clean crossing; disagreement flags a corrupted/mis-heard word (see <code>limen_exchange.py</code>, which catches a tampered tone).</p>
+      <p><b>The cadence is the clock.</b> B knows <em>when</em> to listen because both agents share the fixed <code>3-2-1-0</code> pulse — the carrier doing exactly its job: synchronization, not data.</p>
+    </div>
+  </details>
+
+  <footer>
+    LIMEN two-agent exchange · <a href="./">the console</a> · <a href="../">PULSE</a> · reference: <a href="limen_exchange.py">limen_exchange.py</a><br>
+    governor David Lee Wise (ROOT0) · instance AVAN · CC-BY-ND-4.0
+  </footer>
+</div>
+
+<script>
+const GATES = {
+  stile:{glyph:"◐",frm:"observe",to:"act",gate:"64.5",tone:262},
+  airgap:{glyph:"⊘",frm:"TOPH",to:"Patricia",gate:"128.5",tone:330},
+  veil:{glyph:"◑",frm:"compute",to:"product",gate:"192.5",tone:392},
+  close:{glyph:"⟳",frm:"wrap",to:"closure",gate:"256.5",tone:523},
+  gap:{glyph:"◇",frm:"forward",to:"inverse",gate:"64/65",tone:294},
+};
+const DIRS={rise:{glyph:"↑"},fall:{glyph:"↓"}};
+const TONES=Object.fromEntries(Object.entries(GATES).map(([n,g])=>[n,g.tone]));
+const esc=w=>[...w].map(ch=>(ch==="%"||ch==="»"||/\s/.test(ch))?"%"+ch.charCodeAt(0).toString(16).toUpperCase().padStart(2,"0"):ch).join("");
+const unesc=w=>w.replace(/%([0-9A-Fa-f]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16)));
+const word=c=>`${DIRS[c.dir].glyph}${GATES[c.gate].glyph}«${esc(c.wit)}»`;
+const TOKR=/([↑↓])([◐⊘◑⟳◇])«([^»]*)»/g;
+const G2D={"↑":"rise","↓":"fall"}, G2G=Object.fromEntries(Object.entries(GATES).map(([n,g])=>[g.glyph,n]));
+function parseGlyph(s){const out=[];let m;TOKR.lastIndex=0;while(m=TOKR.exec(s))out.push({dir:G2D[m[1]],gate:G2G[m[2]],wit:unesc(m[3])});return out;}
+const voiceOf=c=>{const base=GATES[c.gate].tone,semis=c.dir==="rise"?[0,2,4]:[4,2,0];return semis.map(s=>base*Math.pow(2,s/12));};
+const gloss=c=>`«${c.wit}» witnesses the ${c.dir} through the ${GATES[c.gate].frm}→${GATES[c.gate].to} ${c.gate} gate`;
+
+let dir="rise", gate="stile", line=[];
+const gatesEl=document.getElementById("gates");
+for(const [n,g] of Object.entries(GATES)){
+  const el=document.createElement("div");el.className="gate"+(n===gate?" on":"");el.dataset.g=n;
+  el.innerHTML=`<div class="gg">${g.glyph}</div><div class="gn">${n}</div>`;
+  el.onclick=()=>{gate=n;[...gatesEl.children].forEach(c=>c.classList.toggle("on",c.dataset.g===n));};
+  gatesEl.appendChild(el);
+}
+document.getElementById("dirT").onclick=e=>{if(!e.target.dataset.d)return;dir=e.target.dataset.d;[...e.currentTarget.children].forEach(b=>b.classList.toggle("on",b.dataset.d===dir));};
+const PRESETS=[
+  [{dir:"rise",gate:"stile",wit:"truth"},{dir:"fall",gate:"airgap",wit:"mirror"},{dir:"rise",gate:"gap",wit:"question"},{dir:"fall",gate:"close",wit:"rest"}],
+  [{dir:"rise",gate:"stile",wit:"i see"},{dir:"rise",gate:"veil",wit:"i make"},{dir:"fall",gate:"close",wit:"done"}],
+  [{dir:"rise",gate:"gap",wit:"between"},{dir:"fall",gate:"airgap",wit:"across"}],
+];
+const presEl=document.getElementById("presets");
+PRESETS.forEach((p,i)=>{const b=document.createElement("button");b.className="preset";b.textContent="preset "+(i+1);b.onclick=()=>{line=p.map(c=>({...c}));renderA();};presEl.appendChild(b);});
+document.getElementById("add").onclick=()=>{const w=document.getElementById("wit").value.trim();if(!w){flashA("a word needs a witness");return;}line.push({dir,gate,wit:w});renderA();};
+document.getElementById("clear").onclick=()=>{line=[];renderA();};
+function flashA(m){document.getElementById("aStatus").textContent=m;setTimeout(()=>document.getElementById("aStatus").textContent=line.length?line.length+" words":"compose a line",1300);}
+function renderA(){
+  const al=document.getElementById("aline");
+  al.innerHTML=line.length?line.map(word).join(" "):'<span class="await" style="padding:0">empty</span>';
+  document.getElementById("aStatus").textContent=line.length?line.length+" words":"compose a line";
+  document.getElementById("tx").disabled=!line.length;
+}
+
+// ── wire animation ──
+const cv=document.getElementById("wireCv"),ctx=cv.getContext("2d");
+let wireT0=0,wireT1=0,wireOn=false;
+function drawWire(now){
+  ctx.clearRect(0,0,cv.width,cv.height);const y=cv.height/2;
+  ctx.strokeStyle="rgba(120,140,170,.25)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(cv.width-20,y);ctx.stroke();
+  if(wireOn){
+    const p=Math.min(1,Math.max(0,(now-wireT0)/(wireT1-wireT0)));
+    const x=20+(cv.width-40)*p;
+    for(let i=0;i<5;i++){const xx=x-i*26;if(xx<20)continue;ctx.fillStyle=`rgba(74,163,224,${.7-i*.13})`;ctx.beginPath();ctx.arc(xx,y,7-i,0,7);ctx.fill();}
+  }
+  requestAnimationFrame(()=>drawWire(performance.now()));
+}
+drawWire(0);
+
+// ── the exchange ──
+document.getElementById("tx").onclick=transmit;
+async function transmit(){
+  if(!line.length) return;
+  document.getElementById("tx").disabled=true;
+  document.getElementById("aStatus").textContent="transmitting…";
+  document.getElementById("bStatus").textContent="listening…";
+  document.getElementById("bBody").innerHTML='<div class="await">receiving…</div>';
+  document.getElementById("verdict").className="verdict";
+
+  const wireGlyph=line.map(word).join(" ");            // the text channel B will read
+  const actx=new (window.AudioContext||window.webkitAudioContext)();
+  await actx.resume();
+  const analyser=actx.createAnalyser();analyser.fftSize=8192;analyser.smoothingTimeConstant=0;
+  const binHz=actx.sampleRate/analyser.fftSize;
+  const data=new Uint8Array(analyser.frequencyBinCount);
+
+  const beepDur=0.10,beepGap=0.05,phaseGap=0.10,wordRest=0.16,wordGap=0.16;
+  const t0=actx.currentTime+0.2;let t=t0;const spans=[];
+  line.forEach((c,wi)=>{
+    const F=voiceOf(c),dens=[3,2,1];
+    dens.forEach((d,pi)=>{
+      const pStart=t;
+      for(let i=0;i<d;i++){beep(actx,analyser,t,F[pi],beepDur);t+=beepDur+beepGap;}
+      spans.push({wi,pi,start:pStart,end:t-beepGap});t+=phaseGap;
+    });
+    t+=wordRest+wordGap;
+  });
+  const txEnd=t;
+  wireT0=performance.now()+200;wireT1=wireT0+(txEnd-t0)*1000;wireOn=true;
+
+  const buckets=line.map(()=>[[],[],[]]);
+  await new Promise(res=>{
+    function listen(){
+      analyser.getByteFrequencyData(data);
+      let mv=0,mi=0;for(let i=1;i<data.length;i++){if(data[i]>mv){mv=data[i];mi=i;}}
+      if(mv>140){const now=actx.currentTime;const sp=spans.find(s=>now>=s.start&&now<=s.end);if(sp)buckets[sp.wi][sp.pi].push(mi*binHz);}
+      if(actx.currentTime<txEnd+0.15)requestAnimationFrame(listen);else res();
+    }
+    requestAnimationFrame(listen);
+  });
+  try{actx.close();}catch(e){}
+  wireOn=false;
+  decodeAndVerify(buckets,wireGlyph);
+}
+function beep(actx,analyser,t,hz,dur){
+  const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=hz;
+  o.connect(g);g.connect(actx.destination);g.connect(analyser);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t);o.stop(t+dur+0.03);
+}
+const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)];};
+
+function decodeAndVerify(buckets,wireGlyph){
+  const read=parseGlyph(wireGlyph);                    // B reads the glyph (witness + gate/dir)
+  const body=document.getElementById("bBody");body.innerHTML="";
+  let gateHits=0,dirHits=0,intact=true;
+  line.forEach((truth,wi)=>{
+    const f=[median(buckets[wi][0]),median(buckets[wi][1]),median(buckets[wi][2])];
+    const hDir = f[0] && f[2] ? (f[0]<f[2]?"rise":"fall") : "rise";
+    const base = hDir==="rise"?f[0]:f[2];
+    let hGate="stile",bd=1e9;for(const n in TONES){const dd=Math.abs(TONES[n]-base);if(dd<bd){bd=dd;hGate=n;}}
+    const r=read[wi]||{wit:"?",dir:hDir,gate:hGate};
+    const recon={dir:hDir,gate:hGate,wit:r.wit};        // heard gate/dir + read witness
+    const gOk=hGate===r.gate, dOk=hDir===r.dir;          // acoustic vs text (checksum)
+    const matchTruth = hGate===truth.gate && hDir===truth.dir && r.wit===truth.wit;
+    if(hGate===truth.gate)gateHits++; if(hDir===truth.dir)dirHits++; if(!matchTruth)intact=false;
+    const el=document.createElement("div");el.className="bword";
+    el.innerHTML=`<div class="br"><span class="heard">heard ${base?base.toFixed(0):"—"}Hz → ${hGate} (${TONES[hGate]}Hz) · ${hDir} ${DIRS[hDir].glyph}</span>
+      <span><span class="chip ${gOk?'ok':'no'}">gate ${gOk?'✓':'✗'}</span> <span class="chip ${dOk?'ok':'no'}">dir ${dOk?'✓':'✗'}</span></span></div>
+      <div class="br" style="margin-top:5px"><span style="color:var(--wit);font-family:var(--mono);font-size:12px">read «${escapeHTML(r.wit)}»</span></div>
+      <div class="recon">${word(recon)}</div><div class="gloss">${escapeHTML(gloss(recon))}</div>`;
+    body.appendChild(el);
+  });
+  document.getElementById("bStatus").textContent="reconstructed";
+  document.getElementById("aStatus").textContent=line.length+" words sent";
+  document.getElementById("tx").disabled=false;
+  const v=document.getElementById("verdict");
+  v.className="verdict show "+(intact?"intact":"broke");
+  v.innerHTML=(intact?"✓ message received intact across the boundary."
+    :"✗ reconstruction diverged from the original (see mis-heard words above).")
+    +`<div class="acc">acoustic accuracy — gate ${gateHits}/${line.length} · direction ${dirHits}/${line.length} · witness via glyph channel (lossless)</div>`;
+}
+function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+renderA();
+</script>
+</body></html>

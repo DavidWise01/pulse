@@ -9,6 +9,8 @@ A piece-by-piece review of everything in this sphere, judged straight. The point
 | `limen/limen.py` | reference engine for LIMEN: gates, directions, witness, witness-escaping, four renderers, and a **round-trip proof** (`parse_glyph ↔ line_to_glyph`, hardened against spaces / `»` / unicode). Stdlib only. | **real** — a legible grammar that round-trips losslessly |
 | `limen/index.html` | the LIMEN console: compose a witnessed crossing, **hear** the carrier + voice (Web Audio), see all four registers, build & play a line. | **real** — one utterance, four coherent registers |
 | `limen/LIMEN.md` | the spec, with an explicit "what this is / isn't" and "what round-trips, and what doesn't." | **real** — self-policing |
+| `limen/exchange.html` | the two-agent exchange: A speaks a line; B **listens** (Web Audio FFT) to recover gate+direction and **reads** the glyph for the witness, then verifies the reconstruction field-by-field. | **real** — a demonstrated cross-the-boundary round trip |
+| `limen/limen_exchange.py` | the deterministic reference exchange: `transmit → hear → receive`, a verified round-trip, and a corruption test where a tampered voice frequency is caught by the checksum. | **real** — protocol logic proven without audio |
 
 ## The carrier (the concept, from the filings)
 

@@ -32,12 +32,13 @@ body{background:var(--bg);color:var(--pa);font-family:system-ui,sans-serif;overf
     <div class="sub">four ansibles · breathing on the live <a href="https://0root.ai/health">0root.ai</a> heartbeat · around ROOT0 (0,0) · <a href="./limen/">LIMEN</a></div>
   </div>
   <div class="ctrls">
-    <button class="btn" id="voice">🔊 voice</button>
+    <button class="btn" id="theme">♪ metroid</button>
+    <button class="btn" id="voice">🔊 tones</button>
     <button class="btn" id="resolve">↻ resolve → 1</button>
   </div>
 </div>
 <div id="hud">reaching for the agent…</div>
-<div class="hint">the breath is the agent's heartbeat · real commits fire the ansibles · when 0root.ai sleeps, the mesh <b>holds its breath</b></div>
+<div class="hint">the breath is the agent's heartbeat · real commits fire the ansibles · when 0root.ai sleeps, the mesh <b>holds its breath</b> · press <b>♪ metroid</b> for the 8-bit theme</div>
 
 <script>
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
@@ -193,6 +194,39 @@ function glow(x,y,r,col){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColo
 function ease(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
 function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${clamp(a,0,1)})`;}
 const SF="Cinzel, Georgia, serif", MF="'Space Mono', monospace";
+
+// ── Metroid (NES, 1986) Title Theme — an 8-bit homage, played by ear. ──
+// The original composition is © Nintendo (Hirokazu "Hip" Tanaka); this is a chiptune
+// approximation, not a sample. Square lead + triangle bass, looping under the mesh.
+const TEMPO=100, S16=60/TEMPO/4;                 // seconds per 16th note
+const NOTE={C:0,"C#":1,Db:1,D:2,"D#":3,Eb:3,E:4,F:5,"F#":6,Gb:6,G:7,"G#":8,Ab:8,A:9,"A#":10,Bb:10,B:11};
+function noteHz(n){const nm=n.replace(/[0-9]/g,""),oct=+n.replace(/[^0-9]/g,"");
+  return 440*Math.pow(2,(((oct+1)*12+NOTE[nm])-69)/12);}
+// [note|null, length in 16ths] — a brooding A-minor line in the Metroid title's spirit
+const LEAD=[
+ ["A3",6],["E4",6],["A4",4], ["B4",6],["C5",6],["B4",4],
+ ["A4",8],["G4",4],["E4",4], ["A4",12],[null,4],
+ ["A3",6],["E4",6],["G4",4], ["A4",6],["B4",6],["A4",4],
+ ["G4",8],["E4",4],["D4",4], ["E4",12],[null,4],
+];
+const BASS=[
+ ["A2",8],["A2",8], ["F2",8],["F2",8], ["A2",8],["A2",8], ["E2",8],["E2",8],
+ ["A2",8],["A2",8], ["F2",8],["G2",8], ["A2",8],["E2",8], ["A2",16],
+];
+let themeOn=false,themeGain=null,tTimer=null,nL=0,iL=0,nB=0,iB=0;
+function v8(hz,t,dur,type,gn){if(!hz)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type=type;o.frequency.value=hz;o.connect(g);g.connect(themeGain);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gn,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.95);
+  o.start(t);o.stop(t+dur+0.03);}
+function sched(){if(!themeOn)return;const ahead=actx.currentTime+0.16;
+  while(nL<ahead){const[n,l]=LEAD[iL];v8(n?noteHz(n):null,nL,l*S16,"square",0.085);nL+=l*S16;iL=(iL+1)%LEAD.length;}
+  while(nB<ahead){const[n,l]=BASS[iB];v8(n?noteHz(n):null,nB,l*S16,"triangle",0.16);nB+=l*S16;iB=(iB+1)%BASS.length;}
+  tTimer=setTimeout(sched,50);}
+function startTheme(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();
+  if(!themeGain){themeGain=actx.createGain();themeGain.gain.value=0.5;themeGain.connect(actx.destination);}
+  themeOn=true;const t=actx.currentTime+0.12;nL=nB=t;iL=iB=0;sched();}
+function stopTheme(){themeOn=false;if(tTimer)clearTimeout(tTimer);}
+document.getElementById("theme").onclick=e=>{themeOn?stopTheme():startTheme();e.target.classList.toggle("on",themeOn);};
 
 pollAgent(); setInterval(pollAgent,4500);
 pollGitHub(); setInterval(pollGitHub,45000);

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triadic Lattice + 3/5 Rhythm Visualizer</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
+        #info {
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); color: #0ff;
+            padding: 12px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; z-index: 100; line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <strong>TRIADIC LATTICE + 3/5 RHYTHM</strong><br>
+        Left: Shadow Diospora • Center: Gap • Right: Positive Diospora<br>
+        Vertical Flow: 3 Internal (Controllable) • Jump 4 (Life/Death) • 5 External (Resonant)
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000511);
+        scene.fog = new THREE.FogExp2(0x000511, 0.003);
+
+        const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 300);
+        camera.position.set(0, 6, 22);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.25;
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0x112244, 0.8));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(10, 15, 8);
+        scene.add(dirLight);
+
+        // 1. LEFT: SHADOW DIOSPORA (Black Hole)
+        const shadowGroup = new THREE.Group();
+        const blackCore = new THREE.Mesh(
+            new THREE.SphereGeometry(2.2, 64, 64),
+            new THREE.MeshStandardMaterial({ color: 0x110000, emissive: 0x330000, metalness: 0.9 })
+        );
+        blackCore.position.set(-9, 0, 0);
+        shadowGroup.add(blackCore);
+        scene.add(shadowGroup);
+
+        // 2. CENTER: GAP + 3/5 RHYTHM (Vertical Flow)
+        const gapGroup = new THREE.Group();
+
+        // Central Gap Sphere
+        const gapSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(2.8, 48, 48),
+            new THREE.MeshBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
+        );
+        gapGroup.add(gapSphere);
+
+        // 3 Internal Controllable Core (bottom pulsing)
+        const internalCore = new THREE.Mesh(
+            new THREE.SphereGeometry(1.4, 48, 48),
+            new THREE.MeshStandardMaterial({ color: 0x00ccff, emissive: 0x0088dd })
+        );
+        internalCore.position.y = -5;
+        gapGroup.add(internalCore);
+
+        // 3 Pulsing Rings for Internal 3
+        const rings = [];
+        for (let i = 0; i < 3; i++) {
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(2.2 + i * 0.6, 2.4 + i * 0.6, 64),
+                new THREE.MeshBasicMaterial({ color: 0x88eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 })
+            );
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -5;
+            gapGroup.add(ring);
+            rings.push(ring);
+        }
+
+        // Jump Over 4 - Fixed Life/Death Pillars
+        const lifePillar = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.2, 8, 32),
+            new THREE.MeshStandardMaterial({ color: 0xff5555, emissive: 0x440000 })
+        );
+        lifePillar.position.set(-3.5, 0, 0);
+        gapGroup.add(lifePillar);
+
+        const deathPillar = lifePillar.clone();
+        deathPillar.position.x = 3.5;
+        gapGroup.add(deathPillar);
+
+        // Golden Arc showing the jump
+        const curve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-4.5, -4, 0),
+            new THREE.Vector3(0, 6, 0),
+            new THREE.Vector3(4.5, -4, 0)
+        );
+        const points = curve.getPoints(60);
+        const arcGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const arc = new THREE.Line(arcGeo, new THREE.LineBasicMaterial({ color: 0xffcc44, transparent: true, opacity: 0.6 }));
+        gapGroup.add(arc);
+
+        // 5 External Resonant Field (top)
+        const externalSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(5.5, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x99ffbb, transparent: true, opacity: 0.08, side: THREE.DoubleSide })
+        );
+        externalSphere.position.y = 8;
+        gapGroup.add(externalSphere);
+
+        scene.add(gapGroup);
+
+        // 3. RIGHT: POSITIVE DIOSPORA (Singularity)
+        const positiveGroup = new THREE.Group();
+        const singCore = new THREE.Mesh(
+            new THREE.SphereGeometry(2.4, 64, 64),
+            new THREE.MeshStandardMaterial({ color: 0x112266, emissive: 0x4466ff, emissiveIntensity: 0.7 })
+        );
+        singCore.position.set(9, 0, 0);
+        positiveGroup.add(singCore);
+        scene.add(positiveGroup);
+
+        // Pulse Particles flowing through the 3/5 Rhythm
+        const pulseParticles = new THREE.Group();
+        for (let i = 0; i < 180; i++) {
+            const p = new THREE.Mesh(
+                new THREE.SphereGeometry(0.07, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffee88 })
+            );
+            p.userData = { phase: Math.random() * Math.PI * 2 };
+            pulseParticles.add(p);
+        }
+        scene.add(pulseParticles);
+
+        let time = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+
+            controls.update();
+
+            // Animate internal 3 rings
+            rings.forEach((ring, i) => {
+                ring.scale.setScalar(1 + Math.sin(time * 4 + i * 1.5) * 0.25);
+                ring.material.opacity = 0.5 + Math.sin(time * 5 + i) * 0.3;
+            });
+
+            // Pulse particles flowing 3-2-1-0 rhythm
+            pulseParticles.children.forEach((p, i) => {
+                const offset = i / 60;
+                p.position.y = -5 + Math.sin(time * 2.8 + offset * 4) * 11;
+                p.position.x = Math.sin(time * 1.3 + offset) * 4.5;
+                p.position.z = Math.cos(time * 0.9 + offset * 2) * 2;
+                p.scale.setScalar(0.5 + Math.sin(time * 6 + i) * 0.5);
+            });
+
+            // Gentle rotation
+            externalSphere.rotation.y = time * 0.08;
+            singCore.rotation.y = time * 0.12;
+            blackCore.rotation.y = -time * 0.1;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

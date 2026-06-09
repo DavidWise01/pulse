@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3/5 Rhythm Visualizer – Pulse Language v2.0</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
+        #info {
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.8); color: #0ff;
+            padding: 12px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <strong>3/5 RHYTHM</strong><br>
+        3 Internal (Controllable) • Jump 4 (Life/Death) • 5 External (Resonant Field)<br>
+        Pulse: ... .. . [space] — The lattice breathes
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000511);
+        scene.fog = new THREE.FogExp2(0x000511, 0.003);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(0, 4, 14);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.35;
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0x112244));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+        dirLight.position.set(8, 12, 5);
+        scene.add(dirLight);
+
+        // 1. 3 INTERNAL CONTROLLABLE CORE (bottom)
+        const internalGroup = new THREE.Group();
+        const core = new THREE.Mesh(
+            new THREE.SphereGeometry(1.6, 48, 48),
+            new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 0.6 })
+        );
+        internalGroup.add(core);
+        internalGroup.position.y = -3;
+        scene.add(internalGroup);
+
+        // Pulsing rings for 3-2-1
+        const rings = [];
+        for (let i = 0; i < 3; i++) {
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(1.8 + i * 0.4, 2.0 + i * 0.4, 64),
+                new THREE.MeshBasicMaterial({ color: 0x88ddff, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
+            );
+            ring.rotation.x = Math.PI / 2;
+            internalGroup.add(ring);
+            rings.push(ring);
+        }
+
+        // 2. JUMP OVER 4 – Fixed Life/Death pillars (middle)
+        const jumpGroup = new THREE.Group();
+        const lifePillar = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.15, 6, 32),
+            new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0x660000 })
+        );
+        lifePillar.position.set(-2.5, 0, 0);
+        jumpGroup.add(lifePillar);
+
+        const deathPillar = lifePillar.clone();
+        deathPillar.position.x = 2.5;
+        jumpGroup.add(deathPillar);
+
+        // Arc showing the jump
+        const curve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-3, -2, 0),
+            new THREE.Vector3(0, 3, 0),
+            new THREE.Vector3(3, -2, 0)
+        );
+        const points = curve.getPoints(50);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const arcMat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.4 });
+        const arc = new THREE.Line(geometry, arcMat);
+        jumpGroup.add(arc);
+        scene.add(jumpGroup);
+
+        // 3. 5 EXTERNAL RESONANT FIELD (top)
+        const externalSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(4.2, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x88ffaa, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+        );
+        externalSphere.position.y = 5;
+        scene.add(externalSphere);
+
+        // 4. PULSE PARTICLES – 3-2-1-0 descending ladder
+        const pulseParticles = new THREE.Group();
+        for (let i = 0; i < 120; i++) {
+            const p = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffdd88 })
+            );
+            p.userData = { phase: Math.random() * Math.PI * 2, speed: 0.8 + Math.random() * 0.6 };
+            pulseParticles.add(p);
+        }
+        scene.add(pulseParticles);
+
+        let time = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.018;
+
+            controls.update();
+
+            // Animate internal 3 rings (descending pulse)
+            rings.forEach((ring, i) => {
+                ring.scale.setScalar(1 + Math.sin(time * 3 + i) * 0.15);
+                ring.material.opacity = 0.4 + Math.sin(time * 4 + i) * 0.3;
+            });
+
+            // Pulse particles following 3-2-1-0 rhythm
+            pulseParticles.children.forEach((p, i) => {
+                const offset = i / 40;
+                p.position.y = -3 + Math.sin(time * 2.2 + offset * 3) * 4.5;
+                p.position.x = Math.sin(time * 1.1 + offset) * 1.8;
+                p.position.z = Math.cos(time * 0.9 + offset) * 1.2;
+                p.scale.setScalar(0.6 + Math.sin(time * 5 + i) * 0.4);
+            });
+
+            // Gentle rotation on external field
+            externalSphere.rotation.y = time * 0.1;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

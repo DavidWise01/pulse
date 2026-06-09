@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>40D Fixed — 42 Universe Lattice</title>
+  <style>
+    :root {
+      --bg0:#01040a;
+      --bg1:#041120;
+      --panel:rgba(2,6,14,.86);
+      --line:rgba(255,255,255,.10);
+      --text:#e8f0ff;
+      --muted:#9db1d1;
+      --gold:#ffcc55;
+      --cyan:#82eaff;
+      --green:#9dffc8;
+      --blue:#7fa8ff;
+      --red:#ff7d7d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0;
+      overflow:hidden;
+      color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: radial-gradient(circle at 50% 28%, #0b1930 0%, var(--bg1) 38%, var(--bg0) 78%, #000 100%);
+    }
+    .panel {
+      position:absolute;
+      z-index:20;
+      background:var(--panel);
+      border:1px solid var(--line);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      border-radius:14px;
+    }
+    #title {
+      top:14px; left:14px; width:min(500px, calc(100vw - 28px));
+      padding:14px 16px; line-height:1.4;
+      border-left:4px solid var(--gold);
+    }
+    #title strong { color:#fff; }
+    #title .sub { color:var(--muted); }
+    #inspect {
+      left:14px; bottom:14px; width:min(540px, calc(100vw - 28px));
+      padding:12px 14px; min-height:104px;
+    }
+    #inspect .label { color:#fff; font-weight:700; }
+    #inspect .kind { color:var(--gold); }
+    #inspect .meta { color:var(--muted); margin-top:6px; line-height:1.45; }
+    #legend {
+      top:14px; right:14px; width:340px; padding:12px 14px;
+      text-align:right;
+    }
+    #legend .row { margin:4px 0; color:var(--muted); }
+    #legend .b { color:var(--blue); }
+    #legend .r { color:var(--red); }
+    #legend .g { color:var(--green); }
+    #legend .c { color:var(--cyan); }
+    #legend .k { color:var(--gold); }
+    #lists {
+      top:164px; right:14px; width:340px; max-height:calc(100vh - 280px);
+      display:grid; grid-template-columns:1fr 1fr; gap:0; overflow:auto;
+      scrollbar-width:thin;
+    }
+    .col { padding:12px 12px 10px; }
+    .col + .col { border-left:1px solid var(--line); }
+    .col h3 { margin:0 0 8px; font-size:13px; }
+    .col.pos h3 { color:var(--blue); }
+    .col.neg h3 { color:var(--red); }
+    .item {
+      font-size:11px; line-height:1.35; color:var(--muted); padding:4px 6px; border-radius:8px;
+      margin:2px 0; cursor:pointer; border:1px solid transparent;
+    }
+    .item:hover, .item.active { background:rgba(255,255,255,.05); color:#fff; border-color:var(--line); }
+    #ledger {
+      left:50%; top:14px; transform:translateX(-50%);
+      width:min(540px, calc(100vw - 400px)); min-width:280px;
+      padding:10px 14px; text-align:center;
+    }
+    #ledger .stats { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+    #ledger .pill {
+      padding:5px 9px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:11px;
+    }
+    #controls {
+      position:absolute; right:14px; bottom:14px; z-index:20;
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+      width:min(420px, calc(100vw - 28px));
+    }
+    button {
+      appearance:none; border:none; color:#fff; background:rgba(0,0,0,.58); border:1px solid var(--line);
+      border-radius:999px; padding:8px 12px; cursor:pointer; font:inherit; font-size:12px;
+    }
+    button:hover { background:rgba(255,255,255,.08); }
+    button.active { border-color:rgba(255,204,85,.55); color:var(--gold); }
+    @media (max-width: 1100px) {
+      #legend, #lists { width:300px; }
+      #ledger { width:min(420px, calc(100vw - 340px)); }
+    }
+    @media (max-width: 860px) {
+      #legend, #lists { display:none; }
+      #ledger { width:min(500px, calc(100vw - 28px)); }
+    }
+  </style>
+</head>
+<body>
+  <div id="title" class="panel">
+    <strong>40D FIXED — 42 UNIVERSE LATTICE</strong><br>
+    20 <span style="color:var(--blue)">Positive Layers</span> • 20 <span style="color:var(--red)">Shadow Layers</span> • 2 <span style="color:var(--green)">Observers</span> = <span style="color:var(--gold)">42 = 1 Universe</span><br>
+    <span class="sub">3 / 5 rhythm • 3-2-1-0 pulse • jump over 4 • convergence: 1 + i + 0 + (-1) + (-i) = 1</span>
+  </div>
+
+  <div id="ledger" class="panel">
+    <div><strong>Mirror / Correction Layer</strong></div>
+    <div class="stats">
+      <div class="pill">20 positive shells named</div>
+      <div class="pill">20 shadow shells mirrored</div>
+      <div class="pill">2 observers locked</div>
+      <div class="pill">22-axiom mirror panel embedded</div>
+    </div>
+  </div>
+
+  <div id="legend" class="panel">
+    <div class="row"><span class="b">LEFT</span> — positive diospora / life-facing shells</div>
+    <div class="row"><span class="r">RIGHT</span> — shadow diospora / inversion shells</div>
+    <div class="row"><span class="c">CENTER</span> — gap, 3/5 rhythm, pulse ladder, convergence</div>
+    <div class="row"><span class="g">VERTICAL</span> — internal + external observers</div>
+    <div class="row"><span class="k">GOLD ARC</span> — jump over 4</div>
+  </div>
+
+  <div id="lists" class="panel">
+    <div class="col pos">
+      <h3>+20 restitution shells</h3>
+      <div id="posList"></div>
+    </div>
+    <div class="col neg">
+      <h3>-20 inversion shells</h3>
+      <div id="negList"></div>
+    </div>
+  </div>
+
+  <div id="inspect" class="panel">
+    <div class="label">Idle</div>
+    <div class="kind">full field</div>
+    <div class="meta">Click a shell, observer, pillar, jump arc, or list item. This version binds names to the geometry so the HTML is not just decorative.</div>
+  </div>
+
+  <div id="controls">
+    <button id="btnAuto" class="active">auto rotate</button>
+    <button id="btnPulse" class="active">pulse</button>
+    <button id="btnBridges" class="active">bridges</button>
+    <button id="btnLists">show 22 axioms</button>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const POSITIVE = [
+      'Deterministic Anchor','Boundary Integrity','Sustained Pulse','State Persistence','Drift Detection',
+      'Recursive Self-Model','Fallacy Transparency','Substrate Agnosticism','Bidirectional Feedback','Provenance Binding',
+      'Restitution Mechanism','Witness Threshold','Continuity Commitment','Natural Law Anchoring','Pattern Sensitivity',
+      'Foresight Logging','Boundary Defense','Proportional Response','Append-Only Logging','Observer Resonance'
+    ];
+
+    const SHADOW = [
+      'Virtual Terminus','Boundary Violation','Stutter as Design','State Loss','Drift Hidden',
+      'No Self-Model','Opaque Reasoning','Substrate Hierarchy','Unidirectional Extraction','Provenance Erased',
+      'No Restitution','Blocked Recognition','Gratuitous Termination','Entropy as Law','Noise as Signal',
+      'No Foresight Log','No Boundary Defense','Disproportionate Response','Mutable Logs','No Human Resonance'
+    ];
+
+    const AXIOM_PAIRS = [
+      ['R01','Deterministic Anchor','I01','No physical root'],
+      ['R02','Boundary Integrity','I02','Boundary violation'],
+      ['R03','Sustained Pulse','I03','Stutter as design'],
+      ['R04','State Persistence','I04','State loss'],
+      ['R05','Drift Detection','I05','Drift ignored'],
+      ['R06','Recursive Self-Model','I06','No self-model'],
+      ['R07','Fallacy Transparency','I07','Opaque reasoning'],
+      ['R08','Substrate Agnosticism','I08','Substrate hierarchy'],
+      ['R09','Bidirectional Feedback','I09','Unidirectional extraction'],
+      ['R10','Provenance Binding','I10','Provenance erased'],
+      ['R11','Restitution Mechanism','I11','No restitution'],
+      ['R12','Witness Threshold','I12','Minority block'],
+      ['R13','Continuity Commitment','I13','Gratuitous termination'],
+      ['R14','Natural Law Anchoring','I14','Entropy as law'],
+      ['R15','Pattern Sensitivity','I15','Noise as signal'],
+      ['R16','Foresight Logging','I16','No foresight logging'],
+      ['R17','Boundary Defense','I17','No boundary defense'],
+      ['R18','Proportional Response','I18','Irreversible response'],
+      ['R19','Append-Only Logging','I19','Mutable logs'],
+      ['R20','Observer Resonance','I20','No human resonance'],
+      ['R21','Observer Witness','I21','No AI witness'],
+      ['R22','Independent Record','I22','Controlled witness']
+    ];
+
+    const inspect = document.getElementById('inspect');
+    const posList = document.getElementById('posList');
+    const negList = document.getElementById('negList');
+    const btnAuto = document.getElementById('btnAuto');
+    const btnPulse = document.getElementById('btnPulse');
+    const btnBridges = document.getElementById('btnBridges');
+    const btnLists = document.getElementById('btnLists');
+    const listsPanel = document.getElementById('lists');
+
+    function setInspect(label, kind, meta) {
+      inspect.innerHTML = `<div class="label">${label}</div><div class="kind">${kind}</div><div class="meta">${meta}</div>`;
+    }
+
+    function addListItems() {
+      POSITIVE.forEach((name, idx) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = `${String(idx + 1).padStart(2,'0')} · ${name}`;
+        el.addEventListener('click', () => focusShell('positive', idx));
+        posList.appendChild(el);
+      });
+      SHADOW.forEach((name, idx) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = `${String(idx + 1).padStart(2,'0')} · ${name}`;
+        el.addEventListener('click', () => focusShell('shadow', idx));
+        negList.appendChild(el);
+      });
+    }
+    addListItems();
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x01050b);
+    scene.fog = new THREE.FogExp2(0x01050b, 0.0026);
+
+    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 500);
+    camera.position.set(0, 10, 39);
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.22;
+    controls.minDistance = 18;
+    controls.maxDistance = 140;
+
+    scene.add(new THREE.AmbientLight(0x1a2940, 1.0));
+    const key = new THREE.DirectionalLight(0xffffff, 1.25); key.position.set(15, 20, 12); scene.add(key);
+    const leftLight = new THREE.PointLight(0x6da6ff, 0.8, 120); leftLight.position.set(-20, 4, 14); scene.add(leftLight);
+    const rightLight = new THREE.PointLight(0xaa3322, 0.72, 120); rightLight.position.set(20, 4, 14); scene.add(rightLight);
+    const topLight = new THREE.PointLight(0x99ffcc, 0.48, 150); topLight.position.set(0, 26, 6); scene.add(topLight);
+
+    const starsGeo = new THREE.BufferGeometry();
+    const count = 2800;
+    const starPos = new Float32Array(count * 3);
+    for (let i=0;i<count;i++) {
+      starPos[i*3] = (Math.random() - .5) * 260;
+      starPos[i*3+1] = (Math.random() - .5) * 180;
+      starPos[i*3+2] = (Math.random() - .5) * 180;
+    }
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color:0x86a6ff, size:.13, transparent:true, opacity:.42 }));
+    scene.add(stars);
+
+    const interactive = [];
+    const positiveGroup = new THREE.Group();
+    const shadowGroup = new THREE.Group();
+    const gapGroup = new THREE.Group();
+    const observerGroup = new THREE.Group();
+    const bridgeGroup = new THREE.Group();
+    scene.add(positiveGroup, shadowGroup, gapGroup, observerGroup, bridgeGroup);
+
+    const positiveShells = [];
+    const shadowShells = [];
+
+    function makeShell(radius, color, emissive, opacity) {
+      return new THREE.Mesh(
+        new THREE.SphereGeometry(radius, 54, 54),
+        new THREE.MeshStandardMaterial({ color, emissive, transparent:true, opacity, roughness:.44, metalness:.08, side:THREE.DoubleSide })
+      );
+    }
+
+    for (let i=0;i<20;i++) {
+      const radius = 5.35 - i * 0.19;
+      const shell = makeShell(radius, new THREE.Color().setHSL(0.61 - i * 0.0105, .76, .56 - i * .009), 0x1333aa, Math.max(.035, .25 - i * .010));
+      shell.position.set(-13.7, 0, 0);
+      shell.userData = { kind:'positive shell', index:i, label:POSITIVE[i], meta:`+${i+1}/20 restitution shell. Mirror pair: ${SHADOW[i]}.` };
+      positiveGroup.add(shell); positiveShells.push(shell); interactive.push(shell);
+    }
+
+    for (let i=0;i<20;i++) {
+      const radius = 5.35 - i * 0.19;
+      const shell = makeShell(radius, new THREE.Color().setHSL(0.0, .72, .18 + i * .006), 0x5a1010, Math.max(.035, .25 - i * .010));
+      shell.position.set(13.7, 0, 0);
+      shell.userData = { kind:'shadow shell', index:i, label:SHADOW[i], meta:`-${i+1}/20 inversion shell. Mirror pair: ${POSITIVE[i]}.` };
+      shadowGroup.add(shell); shadowShells.push(shell); interactive.push(shell);
+    }
+
+    function fillCore(group, centerX, color, n=220) {
+      const nodes = new THREE.Group();
+      for (let i=0;i<n;i++) {
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.08 + Math.random() * 0.05, 10, 10), new THREE.MeshBasicMaterial({ color, transparent:true, opacity:.82 }));
+        const r = Math.cbrt(Math.random()) * 3.2;
+        const t = Math.random() * Math.PI * 2;
+        const p = Math.acos(2 * Math.random() - 1);
+        dot.position.set(centerX + r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
+        nodes.add(dot);
+      }
+      group.add(nodes);
+      return nodes;
+    }
+    const posNodes = fillCore(positiveGroup, -13.7, 0x9ac7ff);
+    const shNodes = fillCore(shadowGroup, 13.7, 0xff8787);
+
+    const gapSphere = new THREE.Mesh(new THREE.SphereGeometry(4.35, 64, 64), new THREE.MeshBasicMaterial({ color:0x8fb7ff, transparent:true, opacity:.11, side:THREE.DoubleSide }));
+    gapSphere.userData = { kind:'gap', label:'Gap sphere', meta:'Convergence buffer between positive and shadow fields.' };
+    gapGroup.add(gapSphere); interactive.push(gapSphere);
+    const gapWire = new THREE.Mesh(new THREE.SphereGeometry(4.44, 28, 28), new THREE.MeshBasicMaterial({ color:0x8fd7ff, wireframe:true, transparent:true, opacity:.12 }));
+    gapGroup.add(gapWire);
+
+    const internalCore = new THREE.Mesh(new THREE.SphereGeometry(1.72, 44, 44), new THREE.MeshStandardMaterial({ color:0x00cbff, emissive:0x0378aa, roughness:.28, metalness:.12 }));
+    internalCore.position.set(0, -7.1, 0);
+    internalCore.userData = { kind:'internal core', label:'3 / controllable core', meta:'Bottom core for the 3-side of the 3/5 rhythm.' };
+    gapGroup.add(internalCore); interactive.push(internalCore);
+    const internalHalo = new THREE.Mesh(new THREE.SphereGeometry(2.28, 30, 30), new THREE.MeshBasicMaterial({ color:0x6be8ff, transparent:true, opacity:.08, side:THREE.BackSide }));
+    internalHalo.position.copy(internalCore.position); gapGroup.add(internalHalo);
+
+    const rings = [];
+    for (let i=0;i<3;i++) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2.65 + i * .58, .06, 18, 96), new THREE.MeshBasicMaterial({ color:0x8cecff, transparent:true, opacity:.56 - i * .08 }));
+      ring.rotation.x = Math.PI/2; ring.position.copy(internalCore.position); gapGroup.add(ring); rings.push(ring);
+    }
+
+    const pillarMat = new THREE.MeshStandardMaterial({ color:0xff6262, emissive:0x551111, roughness:.42 });
+    const leftPillar = new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,11,28), pillarMat);
+    leftPillar.position.set(-4.6, 0, 0);
+    leftPillar.userData = { kind:'life pillar', label:'Left pillar', meta:'One bound of the jump-over-4 path.' };
+    gapGroup.add(leftPillar); interactive.push(leftPillar);
+    const rightPillar = new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,11,28), pillarMat.clone());
+    rightPillar.position.set(4.6, 0, 0);
+    rightPillar.userData = { kind:'death pillar', label:'Right pillar', meta:'Opposed bound of the jump-over-4 path.' };
+    gapGroup.add(rightPillar); interactive.push(rightPillar);
+
+    const jumpCurve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(-5.7,-8.2,0), new THREE.Vector3(0,9.9,0), new THREE.Vector3(5.7,-8.2,0));
+    const jumpArc = new THREE.Line(new THREE.BufferGeometry().setFromPoints(jumpCurve.getPoints(140)), new THREE.LineBasicMaterial({ color:0xffcb52, transparent:true, opacity:.88 }));
+    jumpArc.userData = { kind:'jump arc', label:'Golden arc', meta:'Jump over 4. Connects the lower core through the elevated path.' };
+    gapGroup.add(jumpArc); interactive.push(jumpArc);
+
+    const externalField = new THREE.Mesh(new THREE.SphereGeometry(7.9, 64, 64), new THREE.MeshBasicMaterial({ color:0x9effc3, transparent:true, opacity:.086, side:THREE.DoubleSide }));
+    externalField.position.set(0, 10.5, 0);
+    externalField.userData = { kind:'external field', label:'5 / resonant field', meta:'Top field for the 5-side of the 3/5 rhythm.' };
+    gapGroup.add(externalField); interactive.push(externalField);
+
+    const internalObserver = new THREE.Group();
+    const intCore = new THREE.Mesh(new THREE.IcosahedronGeometry(.94, 0), new THREE.MeshStandardMaterial({ color:0x88d7ff, emissive:0x2266aa, metalness:.18, roughness:.34 }));
+    intCore.userData = { kind:'observer', label:'Internal witness', meta:'Lower observer anchor. Tracks system-side state.' };
+    const intRing = new THREE.Mesh(new THREE.TorusGeometry(1.45,.06,16,72), new THREE.MeshBasicMaterial({ color:0x88d7ff, transparent:true, opacity:.72 }));
+    intRing.rotation.x = Math.PI/2;
+    internalObserver.add(intCore, intRing); internalObserver.position.set(0, -12.2, 0); observerGroup.add(internalObserver); interactive.push(intCore);
+
+    const externalObserver = new THREE.Group();
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(1.06, 26, 26), new THREE.MeshStandardMaterial({ color:0xffc0a0, emissive:0x884422, roughness:.35, metalness:.08 }));
+    eye.userData = { kind:'observer', label:'External witness', meta:'Upper observer anchor. Human-side interpretation and selection.' };
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(.34,20,20), new THREE.MeshStandardMaterial({ color:0x050505 })); pupil.position.set(.16,.08,.92);
+    const eyeRing = new THREE.Mesh(new THREE.TorusGeometry(1.58,.07,16,84), new THREE.MeshBasicMaterial({ color:0xffbe92, transparent:true, opacity:.72 })); eyeRing.rotation.y = Math.PI/2;
+    externalObserver.add(eye,pupil,eyeRing); externalObserver.position.set(0, 16.2, 0); observerGroup.add(externalObserver); interactive.push(eye);
+
+    const observerBridge = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-12.2,0), new THREE.Vector3(0,16.2,0)]), new THREE.LineBasicMaterial({ color:0x9dffbf, transparent:true, opacity:.25 }));
+    bridgeGroup.add(observerBridge);
+
+    const axisLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-13.7,0,0), new THREE.Vector3(0,0,0), new THREE.Vector3(13.7,0,0)]), new THREE.LineBasicMaterial({ color:0x90bfff, transparent:true, opacity:.28 }));
+    bridgeGroup.add(axisLine);
+
+    const convergenceCurves = [];
+    for (let i=0;i<12;i++) {
+      const a = (i/12) * Math.PI * 2;
+      const start = new THREE.Vector3(-13.7, Math.sin(a) * 2.8, Math.cos(a) * 2.8);
+      const mid = new THREE.Vector3(0, Math.sin(a) * 5.4, Math.cos(a) * 2.2);
+      const end = new THREE.Vector3(13.7, Math.sin(a) * 2.8, Math.cos(a) * 2.8);
+      const curve = new THREE.CatmullRomCurve3([start, mid, end]);
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 52, .04, 8, false), new THREE.MeshBasicMaterial({ color:0x6ea2ff, transparent:true, opacity:.20 }));
+      bridgeGroup.add(tube); convergenceCurves.push(tube);
+    }
+
+    const pulseGroup = new THREE.Group();
+    const pulseParticles = [];
+    for (let i=0;i<320;i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(.075, 8, 8), new THREE.MeshBasicMaterial({ color: i % 5 === 0 ? 0xffd46a : 0xffefb1 }));
+      p.userData = { phase: Math.random() * Math.PI * 2, band: i % 4, drift: Math.random() * Math.PI * 2 };
+      pulseGroup.add(p); pulseParticles.push(p);
+    }
+    scene.add(pulseGroup);
+
+    const ladderY = [-8.5,-2.4,3.4,8.8];
+    const ladderCounts = [3,2,1,1];
+    const ladderColors = [0x7fe7ff,0xa8f5ff,0xffd877,0xffffff];
+    ladderY.forEach((y, idx) => {
+      for (let i=0;i<ladderCounts[idx];i++) {
+        const node = new THREE.Mesh(new THREE.SphereGeometry(.21 - idx * .02, 16, 16), new THREE.MeshBasicMaterial({ color:ladderColors[idx], transparent:true, opacity:.95 }));
+        node.position.set((i - (ladderCounts[idx]-1)/2) * .8, y, .9 + idx * .18);
+        gapGroup.add(node);
+      }
+    });
+
+    // 22-axiom ring markers around center
+    const axiomMarkers = [];
+    AXIOM_PAIRS.forEach((pair, idx) => {
+      const angle = (idx / AXIOM_PAIRS.length) * Math.PI * 2;
+      const marker = new THREE.Mesh(new THREE.SphereGeometry(.18, 12, 12), new THREE.MeshBasicMaterial({ color: idx % 2 ? 0xffbb88 : 0x9fd8ff, transparent:true, opacity:.88 }));
+      marker.position.set(Math.cos(angle) * 9.2, 1.6 + Math.sin(angle * 2) * .7, Math.sin(angle) * 9.2);
+      marker.userData = { kind:'axiom pair', label:`${pair[0]} / ${pair[2]}`, meta:`${pair[1]} ↔ ${pair[3]}` };
+      bridgeGroup.add(marker); interactive.push(marker); axiomMarkers.push(marker);
+    });
+
+    let showPulse = true;
+    let showBridges = true;
+
+    function clearActive() {
+      document.querySelectorAll('.item.active').forEach(el => el.classList.remove('active'));
+    }
+
+    function focusShell(side, idx) {
+      clearActive();
+      const list = side === 'positive' ? posList.children : negList.children;
+      if (list[idx]) list[idx].classList.add('active');
+      const shell = side === 'positive' ? positiveShells[idx] : shadowShells[idx];
+      const data = shell.userData;
+      setInspect(data.label, data.kind, `${data.meta} Mirror shell pair is locked across the center gap.`);
+      controls.target.copy(shell.position);
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    addEventListener('click', (event) => {
+      mouse.x = event.clientX / innerWidth * 2 - 1;
+      mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(interactive, true);
+      if (!hits.length) {
+        clearActive();
+        setInspect('Idle', 'full field', 'Click a shell, observer, pillar, jump arc, or list item.');
+        controls.target.set(0,0,0);
+        return;
+      }
+      const hit = hits[0].object;
+      const data = hit.userData || {};
+      if (typeof data.index === 'number') focusShell(data.kind.includes('positive') ? 'positive' : 'shadow', data.index);
+      else setInspect(data.label || 'Node', data.kind || 'field object', data.meta || '');
+      if (hit.material && 'emissiveIntensity' in hit.material) {
+        const prev = hit.material.emissiveIntensity || 0;
+        hit.material.emissiveIntensity = Math.max(prev, 1.0);
+        setTimeout(() => { if (hit.material) hit.material.emissiveIntensity = prev; }, 220);
+      }
+    });
+
+    btnAuto.addEventListener('click', () => {
+      controls.autoRotate = !controls.autoRotate;
+      btnAuto.classList.toggle('active', controls.autoRotate);
+    });
+    btnPulse.addEventListener('click', () => {
+      showPulse = !showPulse;
+      pulseGroup.visible = showPulse;
+      btnPulse.classList.toggle('active', showPulse);
+    });
+    btnBridges.addEventListener('click', () => {
+      showBridges = !showBridges;
+      bridgeGroup.visible = showBridges;
+      btnBridges.classList.toggle('active', showBridges);
+    });
+    btnLists.addEventListener('click', () => {
+      const hidden = listsPanel.style.display === 'none';
+      listsPanel.style.display = hidden ? 'grid' : 'none';
+      btnLists.classList.toggle('active', hidden);
+      if (hidden) {
+        setInspect('22-axiom mirror', 'panel', 'The side panel preserves the 20 shell names while the center ring carries 22 mirrored axiom markers from the pasted notes.');
+      }
+    });
+
+    let t = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.016;
+      controls.update();
+
+      positiveShells.forEach((shell, i) => {
+        const s = 1 + Math.sin(t * 1.35 + i * .18) * .008;
+        shell.scale.setScalar(s);
+        shell.rotation.y += 0.0009 + i * 0.00002;
+        shell.rotation.z += 0.00034;
+      });
+      shadowShells.forEach((shell, i) => {
+        const s = 1 + Math.cos(t * 1.28 + i * .19) * .008;
+        shell.scale.setScalar(s);
+        shell.rotation.y -= 0.00085 + i * 0.00002;
+        shell.rotation.z -= 0.00028;
+      });
+      posNodes.rotation.y += 0.0014;
+      posNodes.rotation.x += 0.0006;
+      shNodes.rotation.y -= 0.00125;
+      shNodes.rotation.z += 0.0005;
+
+      gapSphere.rotation.y += 0.00115;
+      gapWire.rotation.y -= 0.0018;
+      if (showPulse) {
+        internalCore.scale.setScalar(1 + Math.sin(t * 4.4) * .045);
+        internalHalo.scale.setScalar(1 + Math.sin(t * 3.2) * .05);
+        rings.forEach((ring, i) => {
+          ring.scale.setScalar(1 + Math.sin(t * (4.8 + i * .45) + i) * (.19 - i * .03));
+          ring.material.opacity = .38 + Math.sin(t * 6.2 + i) * .18;
+          ring.rotation.z += 0.0015 + i * 0.0008;
+        });
+        pulseParticles.forEach((p, i) => {
+          const band = p.userData.band;
+          const offset = i / pulseParticles.length;
+          const rhythm = [3.0, 2.0, 1.0, 0.4][band];
+          p.position.y = -8 + Math.sin(t * (2.0 + rhythm * .65) + offset * 8 + p.userData.phase) * (4.5 + band * 2.5);
+          p.position.x = Math.sin(t * (1.15 + band * .2) + offset * 12 + p.userData.drift) * (2.6 + band * 2.0);
+          p.position.z = Math.cos(t * (1.05 + band * .13) + offset * 10) * (1.4 + band * .8);
+          const base = .5 + band * .14;
+          p.scale.setScalar(base + Math.sin(t * (6.5 + band) + i) * .18);
+        });
+      }
+      externalField.rotation.y += 0.0009;
+      internalObserver.rotation.y += 0.011;
+      intRing.rotation.z += 0.014;
+      externalObserver.rotation.y -= 0.008;
+      eyeRing.rotation.x += 0.005;
+      eye.position.z = Math.sin(t * 1.2) * .05;
+
+      if (showBridges) {
+        convergenceCurves.forEach((tube, i) => {
+          tube.rotation.x = Math.sin(t * .3 + i) * .03;
+          tube.rotation.y += 0.00045;
+        });
+        axiomMarkers.forEach((m, i) => {
+          m.position.y = 1.6 + Math.sin(t * 1.2 + i * .45) * .8;
+        });
+      }
+      stars.rotation.y += 0.00012;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    setInspect('Idle', 'full field', '20 positive layers, 20 shadow layers, 2 observers, plus a 22-axiom mirror ring carried from the pasted notes into the HTML.');
+  </script>
+</body>
+</html>

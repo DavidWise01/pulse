@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>42-Universe Lattice + 3/5 Rhythm + Convergence</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
+        #info {
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); color: #0ff;
+            padding: 12px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; z-index: 100; line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <strong>42-UNIVERSE LATTICE</strong><br>
+        20 Positive (Light) • 20 Shadow (Dark) • 2 Observers = 42 = 1 Universe<br>
+        3/5 Rhythm • 3-2-1-0 Pulse • Convergence: 1 + i + 0 + (-1) + (-i) = 1
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000511);
+        scene.fog = new THREE.FogExp2(0x000511, 0.0025);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 400);
+        camera.position.set(0, 8, 35);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.2;
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0x112244, 0.9));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.3);
+        dirLight.position.set(15, 20, 10);
+        scene.add(dirLight);
+
+        // LEFT: POSITIVE DIOSPORA (20 light layers)
+        const positiveGroup = new THREE.Group();
+        for (let i = 0; i < 20; i++) {
+            const layer = new THREE.Mesh(
+                new THREE.SphereGeometry(4.5 - i * 0.18, 48, 48),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x4466ff, 
+                    emissive: 0x1122aa, 
+                    transparent: true, 
+                    opacity: 0.25 - i * 0.01 
+                })
+            );
+            layer.position.set(-12, 0, 0);
+            positiveGroup.add(layer);
+        }
+        scene.add(positiveGroup);
+
+        // RIGHT: SHADOW DIOSPORA (20 dark layers)
+        const shadowGroup = new THREE.Group();
+        for (let i = 0; i < 20; i++) {
+            const layer = new THREE.Mesh(
+                new THREE.SphereGeometry(4.5 - i * 0.18, 48, 48),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x440000, 
+                    emissive: 0x660000, 
+                    transparent: true, 
+                    opacity: 0.25 - i * 0.01 
+                })
+            );
+            layer.position.set(12, 0, 0);
+            shadowGroup.add(layer);
+        }
+        scene.add(shadowGroup);
+
+        // CENTER: GAP + 3/5 RHYTHM
+        const gapGroup = new THREE.Group();
+
+        // Central Gap
+        const gapSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(3.8, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+        );
+        gapGroup.add(gapSphere);
+
+        // 3 Internal Controllable Core (bottom)
+        const internalCore = new THREE.Mesh(
+            new THREE.SphereGeometry(1.6, 48, 48),
+            new THREE.MeshStandardMaterial({ color: 0x00ccff, emissive: 0x0088dd })
+        );
+        internalCore.position.y = -6;
+        gapGroup.add(internalCore);
+
+        // 3 Pulsing Rings
+        const rings = [];
+        for (let i = 0; i < 3; i++) {
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(2.4 + i * 0.5, 2.6 + i * 0.5, 64),
+                new THREE.MeshBasicMaterial({ color: 0x88eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
+            );
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -6;
+            gapGroup.add(ring);
+            rings.push(ring);
+        }
+
+        // Jump Over 4 (Life/Death pillars)
+        const lifePillar = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.25, 0.25, 10, 32),
+            new THREE.MeshStandardMaterial({ color: 0xff5555, emissive: 0x440000 })
+        );
+        lifePillar.position.set(-4, 0, 0);
+        gapGroup.add(lifePillar);
+
+        const deathPillar = lifePillar.clone();
+        deathPillar.position.x = 4;
+        gapGroup.add(deathPillar);
+
+        // Golden Arc (the jump)
+        const curve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-5, -7, 0),
+            new THREE.Vector3(0, 8, 0),
+            new THREE.Vector3(5, -7, 0)
+        );
+        const points = curve.getPoints(80);
+        const arc = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(points),
+            new THREE.LineBasicMaterial({ color: 0xffcc44, transparent: true, opacity: 0.7 })
+        );
+        gapGroup.add(arc);
+
+        // 5 External Resonant Field (top)
+        const externalSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(7.2, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x99ffbb, transparent: true, opacity: 0.09, side: THREE.DoubleSide })
+        );
+        externalSphere.position.y = 9;
+        gapGroup.add(externalSphere);
+
+        scene.add(gapGroup);
+
+        // Pulse Particles – 3-2-1-0 descending ladder flowing through everything
+        const pulseParticles = new THREE.Group();
+        for (let i = 0; i < 240; i++) {
+            const p = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffee88 })
+            );
+            p.userData = { phase: Math.random() * Math.PI * 2 };
+            pulseParticles.add(p);
+        }
+        scene.add(pulseParticles);
+
+        // Convergence Text (floating)
+        let time = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+
+            controls.update();
+
+            // Animate 3 internal rings
+            rings.forEach((ring, i) => {
+                ring.scale.setScalar(1 + Math.sin(time * 4.5 + i) * 0.3);
+                ring.material.opacity = 0.6 + Math.sin(time * 6 + i) * 0.3;
+            });
+
+            // Pulse particles flowing 3-2-1-0 rhythm
+            pulseParticles.children.forEach((p, i) => {
+                const offset = i / 80;
+                p.position.y = -7 + Math.sin(time * 3.2 + offset * 5) * 16;
+                p.position.x = Math.sin(time * 1.4 + offset) * 8;
+                p.position.z = Math.cos(time * 1.1 + offset * 2) * 4;
+                p.scale.setScalar(0.6 + Math.sin(time * 7 + i) * 0.5);
+            });
+
+            // Gentle rotation on spheres
+            externalSphere.rotation.y = time * 0.07;
+            gapSphere.rotation.y = time * 0.12;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

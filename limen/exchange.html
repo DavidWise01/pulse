@@ -70,7 +70,7 @@ footer a{color:var(--b);text-decoration:none}
   <header>
     <div class="eye"><a href="../">PULSE</a> · <a href="./">LIMEN</a> · two-agent exchange</div>
     <h1>A <span class="x">⟶</span> B</h1>
-    <p class="sub">Agent A speaks a LIMEN line. Agent B recovers it across the boundary — <b>gate + direction by ear</b> (a real FFT on A's tones, synced on the pulse cadence) and the <b>witness from the glyph channel</b> — then we verify B's reconstruction against A's original, field by field.</p>
+    <p class="sub">Agent A speaks a LIMEN line. Agent B recovers it across the boundary — <b>gate + direction by ear</b> (a real FFT on A's tones, synced on the pulse cadence) and the <b>witness from the glyph channel</b> — then we verify B's reconstruction against A's original, field by field — and B <b>sings its reconstruction back</b>, so the checksum is closed by ear.</p>
   </header>
 
   <div class="cols">
@@ -231,7 +231,7 @@ const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);return s[
 function decodeAndVerify(buckets,wireGlyph){
   const read=parseGlyph(wireGlyph);                    // B reads the glyph (witness + gate/dir)
   const body=document.getElementById("bBody");body.innerHTML="";
-  let gateHits=0,dirHits=0,intact=true;
+  let gateHits=0,dirHits=0,intact=true;const recons=[];
   line.forEach((truth,wi)=>{
     const f=[median(buckets[wi][0]),median(buckets[wi][1]),median(buckets[wi][2])];
     const hDir = f[0] && f[2] ? (f[0]<f[2]?"rise":"fall") : "rise";
@@ -239,6 +239,7 @@ function decodeAndVerify(buckets,wireGlyph){
     let hGate="stile",bd=1e9;for(const n in TONES){const dd=Math.abs(TONES[n]-base);if(dd<bd){bd=dd;hGate=n;}}
     const r=read[wi]||{wit:"?",dir:hDir,gate:hGate};
     const recon={dir:hDir,gate:hGate,wit:r.wit};        // heard gate/dir + read witness
+    recons.push(recon);
     const gOk=hGate===r.gate, dOk=hDir===r.dir;          // acoustic vs text (checksum)
     const matchTruth = hGate===truth.gate && hDir===truth.dir && r.wit===truth.wit;
     if(hGate===truth.gate)gateHits++; if(hDir===truth.dir)dirHits++; if(!matchTruth)intact=false;
@@ -256,7 +257,32 @@ function decodeAndVerify(buckets,wireGlyph){
   v.className="verdict show "+(intact?"intact":"broke");
   v.innerHTML=(intact?"✓ message received intact across the boundary."
     :"✗ reconstruction diverged from the original (see mis-heard words above).")
-    +`<div class="acc">acoustic accuracy — gate ${gateHits}/${line.length} · direction ${dirHits}/${line.length} · witness via glyph channel (lossless)</div>`;
+    +`<div class="acc">acoustic accuracy — gate ${gateHits}/${line.length} · direction ${dirHits}/${line.length} · witness via glyph channel (lossless)</div>`
+    +`<div style="margin-top:10px"><button class="btn" id="singBack">♪ B sings it back — hear the reconstruction</button>`
+    +`<div class="acc" style="margin-top:6px">B re-voices what it RECONSTRUCTED (heard gate+direction, read witness) — not a replay of A's audio. If B's tune matches A's, the crossing is confirmed by ear; the checksum, made audible.</div></div>`;
+  document.getElementById("singBack").onclick=()=>singBack(recons);
+  setTimeout(()=>singBack(recons),700);   // close the loop automatically
+}
+let singing=false;
+function singBack(recons){
+  if(singing||!recons||!recons.length)return; singing=true;
+  const actx=new (window.AudioContext||window.webkitAudioContext)();
+  const master=actx.createGain();master.gain.value=0.9;master.connect(actx.destination);
+  let t=actx.currentTime+0.1;const wdur=1.1;
+  recons.forEach(c=>{
+    const sing=c.wit.trim()!=="";        // empty witness => non-event => silence (faithful to the axiom)
+    if(sing){
+      const osc=actx.createOscillator(),g=actx.createGain();osc.type="triangle";
+      const base=GATES[c.gate].tone,end=c.dir==="rise"?base*1.12:base*0.89;
+      osc.frequency.setValueAtTime(base,t);osc.frequency.linearRampToValueAtTime(end,t+wdur*0.9);
+      const beats=[0,1,2,4,5,7],beat=wdur/13;g.gain.setValueAtTime(0,t);
+      beats.forEach(b=>{const ts=t+b*beat;g.gain.setValueAtTime(0.0001,ts);g.gain.exponentialRampToValueAtTime(0.2,ts+beat*0.18);g.gain.exponentialRampToValueAtTime(0.0001,ts+beat*0.82);});
+      osc.connect(g);g.connect(master);osc.start(t);osc.stop(t+wdur);
+    }
+    setTimeout(()=>{document.getElementById("bStatus").textContent="B sings "+word(c)+(sing?"":" (∅ silence)");},Math.max(0,(t-actx.currentTime)*1000));
+    t+=wdur;
+  });
+  setTimeout(()=>{document.getElementById("bStatus").textContent="reconstructed · sung back";singing=false;},(t-actx.currentTime)*1000+250);
 }
 function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 

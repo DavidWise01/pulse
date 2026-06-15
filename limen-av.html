@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIMEN · The Music & The Video — the audio register, made audible</title>
+<style>
+:root{
+  --bg:#0a0c12; --surface:#12151d; --surface2:#1a1e28; --line:#232936;
+  --text:#e9ecf2; --dim:#9aa3b2; --faint:#69748a;
+  --pulse:#4aa3e0; --gate:#8a7cff; --rise:#5fd0a8; --wit:#e0b24a; --fall:#d08a5f;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace; --serif:"Iowan Old Style",Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;line-height:1.6;padding:16px}
+.wrap{max-width:860px;margin:0 auto}
+header{text-align:center;border-bottom:1px solid var(--line);padding-bottom:20px}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--faint)}.eye a{color:var(--faint);text-decoration:none}.eye a:hover{color:var(--pulse)}
+h1{font-family:var(--serif);font-size:clamp(28px,6vw,48px);font-weight:600;letter-spacing:.06em;color:var(--gate);margin:12px 0 4px;text-shadow:0 0 40px rgba(138,124,255,.25)}
+.sub{font-size:14px;color:var(--dim);max-width:64ch;margin:8px auto 0;font-style:italic}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin:20px 0}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:radial-gradient(ellipse at 50% 40%,#10131c,#070910)}
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 6px;align-items:center}
+.btn{appearance:none;background:transparent;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:9px 15px;border:1px solid var(--gate);color:var(--gate);border-radius:8px}
+.btn.go{border-color:var(--rise);color:var(--rise)} .btn.rec{border-color:var(--fall);color:var(--fall)} .btn:disabled{opacity:.4;cursor:not-allowed}
+.lineinput{width:100%;font-family:var(--mono);font-size:15px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:11px 13px;text-align:center;letter-spacing:.04em}
+.presets{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.preset{font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:6px 10px;cursor:pointer}.preset:hover{border-color:var(--gate);color:var(--text)}
+.reg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+.rcell{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.rcell .rk{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.rcell .rv{font-family:var(--mono);font-size:12.5px;color:var(--text);margin-top:3px;word-break:break-word;min-height:18px}
+.rcell.audio .rv{color:var(--pulse)} .rcell.glyph .rv{color:var(--gate)} .rcell.bits .rv{color:var(--rise)} .rcell.gloss .rv{color:var(--wit);font-family:var(--serif);font-size:13px}
+.gates{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:10px;font-family:var(--mono);font-size:11px}
+.gc{border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center;color:var(--dim)}
+.gc .gg{font-size:20px;display:block} .gc .gh{color:var(--pulse)}
+h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:24px 0 6px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.note{font-size:13px;color:var(--dim);line-height:1.7;background:var(--surface);border-left:3px solid var(--wit);border-radius:8px;padding:12px 15px;margin:12px 0}.note b{color:var(--text)}
+.readout{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;min-height:18px;margin-top:6px}.readout b{color:var(--gate)}
+a.dl{display:inline-block;font-family:var(--mono);font-size:12px;color:var(--rise);border:1px solid var(--rise);border-radius:8px;padding:7px 13px;text-decoration:none;margin-top:8px}
+footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px;text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.9}footer a{color:var(--gate);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eye"><a href="../">UD0</a> · <a href="index.html">PULSE · LIMEN</a> · the audio register, made audible</div>
+  <h1>LIMEN · The Music &amp; The Video</h1>
+  <p class="sub">LIMEN already had four registers — pulse (audio) · glyph (visual) · bits (silicon) · gloss (human). The audio one was specified but silent. Here it SOUNDS: each gate is a pitch, each direction a glide, the carrier the 3-2-1-0 cadence — and a fifth register, VIDEO, renders the crossing in time. Press play; it sings the line. Record; it gives you a video of it.</p>
+</header>
+
+<div class="panel">
+  <canvas id="c" width="820" height="360"></canvas>
+  <div class="readout" id="readout">a line of witnessed crossings — press play to hear &amp; see it cross</div>
+  <input class="lineinput" id="line" value="↑◐«truth» ↓⊘«mirror» ↑◑«proof» ↑⟳«closed»" spellcheck="false">
+  <div class="presets" id="presets"></div>
+  <div class="controls">
+    <button class="btn go" id="play" onclick="play()">▶ play (the music)</button>
+    <button class="btn" id="stop" onclick="stop()">■ stop</button>
+    <button class="btn rec" id="rec" onclick="toggleRec()">● record (webm)</button>
+  </div>
+  <div class="reg" id="reg">
+    <div class="rcell audio"><div class="rk">pulse · audio</div><div class="rv" id="r-audio">—</div></div>
+    <div class="rcell glyph"><div class="rk">glyph · visual</div><div class="rv" id="r-glyph">—</div></div>
+    <div class="rcell bits"><div class="rk">bits · silicon</div><div class="rv" id="r-bits">—</div></div>
+    <div class="rcell gloss"><div class="rk">gloss · human</div><div class="rv" id="r-gloss">—</div></div>
+  </div>
+  <div id="dlwrap" style="text-align:center"></div>
+</div>
+
+<h2>The gates have pitch</h2>
+<div class="gates" id="gates"></div>
+
+<div class="note"><b>What the music carries — and what it doesn't.</b> Per the LIMEN spec, the audio is a <b>2-field tag</b>: the gate's base tone tells you WHICH gate, the rise/fall glide tells you WHICH WAY. You can genuinely hear that. But the <b>witness — the meaning — is never in the sound.</b> A crossing with an empty witness «» is a <b>non-event</b>: it plays as silence (try it). So the music is real and the carrier is "music for the machine," but the language stays in the glyph and the gloss. The <b>video</b> is the fifth register: a synced rendering of the same utterance across time — not new information, the crossing made watchable. Honest layers, judged by different rulers.</div>
+
+<footer>
+  LIMEN · THE MUSIC &amp; THE VIDEO · the audio register made audible + a 5th register (video)<br>
+  GATE = PITCH · DIRECTION = GLIDE · CARRIER = 3-2-1-0 · WITNESS = SILENCE WHEN ABSENT (THE NON-EVENT)<br>
+  <a href="index.html">← PULSE · LIMEN</a> · grounded in PULSE-AXIOM-v1.0 · ROOT0 / AVAN · CC-BY-ND-4.0
+</footer>
+</div>
+<script>
+// ── the gates: glyph · tone(Hz) · direction-of-meaning, from LIMEN.md ──
+const GATES={
+ "◐":{name:"stile", tone:262, frm:"observe", to:"act",      id:"0001"},
+ "⊘":{name:"airgap",tone:330, frm:"TOPH",    to:"Patricia", id:"0010"},
+ "◑":{name:"veil",  tone:392, frm:"compute", to:"product",  id:"0011"},
+ "⟳":{name:"close", tone:523, frm:"wrap",    to:"closure",  id:"0100"},
+ "◇":{name:"gap",   tone:294, frm:"forward", to:"inverse",  id:"0101"},
+};
+const DIRS={"↑":{name:"rise",bit:"1",law:"0→1"},"↓":{name:"fall",bit:"0",law:"1→0"}};
+const CARRIER="111011010000"; // 3-2-1-0 frame
+const PRESETS=[
+ "↑◐«truth» ↓⊘«mirror» ↑◑«proof» ↑⟳«closed»",
+ "↑◐«observe» ↑◇«?» ↓◇«back» ↑◑«resolved»",
+ "↑◐«witness» ↑◐«» ↑◐«again»",   // middle = non-event (silence)
+ "↑⊘«fire-and-forget» ↓⊘«no-ack»",
+];
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let audio=null, master=null, recDest=null;
+let cross=[], schedule=[], t0=0, playing=false, dur=1.5;
+
+function parse(line){
+  const re=/([↑↓])([◐⊘◑⟳◇])«([^»]*)»/g; const out=[]; let m;
+  while((m=re.exec(line))!==null){ out.push({dir:m[1],gate:m[2],wit:m[3]}); }
+  return out;
+}
+function setLine(s){ document.getElementById('line').value=s; if(!playing) drawStatic(); }
+
+// ── AUDIO: voice one crossing — carrier 3-2-1-0 gated, gate tone, direction glide ──
+function voice(cx, start){
+  if(cx.wit.trim()===""){ return; } // non-event: silence
+  const g=GATES[cx.gate], d=DIRS[cx.dir];
+  const osc=audio.createOscillator(), gain=audio.createGain();
+  osc.type="triangle";
+  const base=g.tone, end = d.name==="rise" ? base*1.12 : base*0.89;
+  osc.frequency.setValueAtTime(base,start);
+  osc.frequency.linearRampToValueAtTime(end, start+dur*0.92);
+  gain.gain.setValueAtTime(0,start);
+  // 3-2-1-0: pulses at beats [0,1,2] [4,5] [7] then rest
+  const beats=[0,1,2,4,5,7], beat=dur/13;
+  beats.forEach(b=>{ const ts=start+b*beat;
+    gain.gain.setValueAtTime(0.0001,ts);
+    gain.gain.exponentialRampToValueAtTime(0.22, ts+beat*0.18);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ts+beat*0.82);
+  });
+  osc.connect(gain); gain.connect(master); if(recDest) gain.connect(recDest);
+  osc.start(start); osc.stop(start+dur);
+}
+function play(){
+  stop();
+  cross=parse(document.getElementById('line').value);
+  if(!cross.length){ document.getElementById('readout').innerHTML='no valid crossings — form: <b>↑◐«witness»</b>'; return; }
+  audio = audio || new (window.AudioContext||window.webkitAudioContext)();
+  audio.resume();
+  master = audio.createGain(); master.gain.value=0.9; master.connect(audio.destination);
+  t0=audio.currentTime+0.12; schedule=[];
+  cross.forEach((cx,i)=>{ const st=t0+i*dur; voice(cx,st); schedule.push({i,st,en:st+dur,cx}); });
+  playing=true; document.getElementById('play').disabled=true;
+  loop();
+}
+function stop(){ playing=false; document.getElementById('play').disabled=false;
+  if(audio){ try{master&&master.disconnect();}catch(e){} } drawStatic(); }
+
+// ── VIDEO: the synced render (5th register) ──
+function activeNow(){ if(!playing||!audio) return null; const t=audio.currentTime;
+  for(const s of schedule){ if(t>=s.st && t<s.en) return {...s, local:(t-s.st)/dur}; }
+  if(t>=t0 + cross.length*dur){ playing=false; document.getElementById('play').disabled=false; }
+  return null; }
+function pulseEnvAt(local){ // 3-2-1-0 amplitude at local time [0,1)
+  const beats=[0,1,2,4,5,7], beat=1/13; const b=Math.floor(local/beat);
+  return beats.includes(b) ? (1 - ((local-b*beat)/beat)) : 0;
+}
+function draw(active){
+  ctx.clearRect(0,0,820,360);
+  const cx = active ? active.cx : (cross[0]||null);
+  const g = cx ? GATES[cx.gate] : null, d = cx ? DIRS[cx.dir] : null;
+  const isNon = cx && cx.wit.trim()==="";
+  // carrier waveform across the top
+  ctx.strokeStyle="#2a3550"; ctx.lineWidth=1; ctx.beginPath();
+  const amp = active ? pulseEnvAt(active.local) : 0;
+  const freq = g ? g.tone/40 : 7;
+  for(let x=0;x<820;x++){ const y=70 + Math.sin((x/820)*freq*6.283 + (active?active.local*20:0))*28*(0.25+amp*0.95)*(isNon?0.12:1);
+    if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+  ctx.strokeStyle = isNon ? "#3a4256" : "#4aa3e0"; ctx.globalAlpha=0.5+amp*0.5; ctx.stroke(); ctx.globalAlpha=1;
+  // the 3-2-1-0 bars
+  const bars=[3,2,1,0]; let bx=300;
+  ctx.font="11px ui-monospace,monospace"; ctx.fillStyle="#69748a"; ctx.textAlign="center";
+  ctx.fillText("3 — 2 — 1 — 0  ·  the carrier", 410, 128);
+  // the gate glyph, lit by the pulse
+  ctx.save(); ctx.translate(410,210);
+  const lit = 0.3 + (active?amp:0)*0.7;
+  ctx.shadowBlur = 30*(active?amp:0.3); ctx.shadowColor="#8a7cff";
+  ctx.fillStyle = isNon ? "#3a4256" : `rgba(138,124,255,${lit})`;
+  ctx.font="bold 110px serif"; ctx.fillText(cx?cx.gate:"·",0,38); ctx.shadowBlur=0; ctx.restore();
+  // direction arrow
+  if(cx){ ctx.fillStyle = d.name==="rise"?"#5fd0a8":"#d08a5f"; ctx.font="bold 40px serif"; ctx.textAlign="center";
+    ctx.fillText(cx.dir, 410, d.name==="rise"?120:300); }
+  // witness
+  ctx.font="20px 'Iowan Old Style',Georgia,serif"; ctx.textAlign="center";
+  ctx.fillStyle = isNon ? "#69748a" : "#e0b24a";
+  ctx.fillText(isNon? "« ∅ non-event — silence »" : "«"+(cx?cx.wit:"")+"»", 410, 330);
+  // gate name + gloss
+  if(g){ ctx.font="12px ui-monospace,monospace"; ctx.fillStyle="#9aa3b2";
+    ctx.fillText(`${d.name} · ${g.name}  (${g.frm} → ${g.to})  ·  ${g.tone} Hz`, 410, 352); }
+  // progress dots
+  cross.forEach((c,i)=>{ const px=410-(cross.length-1)*9+i*18;
+    ctx.beginPath(); ctx.arc(px,18,4,0,6.283);
+    ctx.fillStyle = (active&&active.i===i)?"#8a7cff":"#2a3550"; ctx.fill(); });
+  // registers
+  if(cx){ const bits=CARRIER+"·"+g.id+"·"+d.bit+"·"+(isNon?"0":"1");
+    document.getElementById('r-audio').textContent = isNon? "silence (non-event)" : `${g.tone}Hz · ${d.name} glide`;
+    document.getElementById('r-glyph').textContent = cx.dir+cx.gate+"«"+cx.wit+"»";
+    document.getElementById('r-bits').textContent = bits;
+    document.getElementById('r-gloss').textContent = isNon? "no witness at traversal → silently excluded"
+      : `«${cx.wit}» witnesses the ${d.name} through the ${g.frm}→${g.to} ${g.name} gate`;
+  }
+}
+function drawStatic(){ draw(null); }
+function loop(){ if(!playing){ drawStatic(); return; }
+  const a=activeNow(); draw(a);
+  document.getElementById('readout').innerHTML = a ? `crossing <b>${a.i+1}/${cross.length}</b> · ${a.cx.dir}${a.cx.gate}«${a.cx.wit||'∅'}»` : 'line complete';
+  if(playing) requestAnimationFrame(loop); else { document.getElementById('play').disabled=false; drawStatic(); }
+}
+
+// ── RECORD: canvas + audio → webm ──
+let recorder=null, chunks=[], recording=false;
+function toggleRec(){
+  if(recording){ recorder&&recorder.stop(); return; }
+  if(!window.MediaRecorder || !cv.captureStream){ document.getElementById('readout').textContent='recording not supported in this browser'; return; }
+  audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume();
+  recDest = audio.createMediaStreamDestination();
+  const vs=cv.captureStream(30); const stream=new MediaStream([...vs.getVideoTracks(), ...recDest.stream.getAudioTracks()]);
+  let mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?'video/webm;codecs=vp9,opus':'video/webm';
+  try{ recorder=new MediaRecorder(stream,{mimeType:mime}); }catch(e){ document.getElementById('readout').textContent='recorder init failed'; return; }
+  chunks=[]; recorder.ondataavailable=e=>{ if(e.data.size)chunks.push(e.data); };
+  recorder.onstop=()=>{ const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob);
+    document.getElementById('dlwrap').innerHTML=`<a class="dl" href="${url}" download="limen-line.webm">⬇ download the video (.webm)</a>`;
+    recording=false; document.getElementById('rec').textContent='● record (webm)'; document.getElementById('rec').style.color='';
+    recDest=null; };
+  recorder.start(); recording=true;
+  document.getElementById('rec').textContent='■ stop recording'; document.getElementById('rec').style.color='#e07a9a';
+  play();
+  // auto-stop a beat after the line ends
+  const total=(parse(document.getElementById('line').value).length)*dur*1000 + 400;
+  setTimeout(()=>{ if(recording) recorder.stop(); }, total);
+}
+
+// init
+PRESETS.forEach(p=>{ const b=document.createElement('button'); b.className='preset'; b.textContent=p; b.onclick=()=>setLine(p); document.getElementById('presets').appendChild(b); });
+document.getElementById('gates').innerHTML = Object.entries(GATES).map(([gl,g])=>`<div class="gc"><span class="gg" style="color:#8a7cff">${gl}</span>${g.name}<br><span class="gh">${g.tone} Hz</span></div>`).join('');
+drawStatic();
+</script>
+</body>
+</html>

@@ -24,6 +24,8 @@ canvas{display:block;width:100%;max-width:700px;height:auto;background:radial-gr
 .lane .row span:first-child{color:var(--dim)}
 .lane .st{font-size:10px;margin-top:6px;letter-spacing:.08em;text-transform:uppercase}
 .lane .st.lit{color:#6ad89a}.lane .st.dim{color:#e07a9a}
+.lane .sh{font-size:9.5px;margin-top:6px;color:var(--dim);border-top:1px solid var(--line);padding-top:5px}
+.lane .sh b{color:var(--silicon)}.lane .sh a{color:var(--cathode);text-decoration:none}
 .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:11px}
 .ctl input{background:#0b1120;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:4px;flex:1;min-width:200px}
 .ctl button{background:transparent;border:1px solid var(--silicon);color:var(--silicon);font-family:var(--mono);font-size:10px;padding:6px 11px;border-radius:4px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
@@ -45,17 +47,20 @@ the breath is the agent's <a href="https://0root.ai/v1/beacon/echo">echo</a>; wh
     <div class="row"><span>pings</span><span id="a-p">—</span></div>
     <div class="row"><span>mean interval</span><span id="a-i">—</span></div>
     <div class="row"><span>since last</span><span id="a-s">—</span></div>
-    <div class="st" id="a-st">—</div></div>
+    <div class="st" id="a-st">—</div>
+    <div class="sh">.shadow → <b><a href="https://0root.ai/robots.txt">robots.txt</a></b> · the entry</div></div>
   <div class="lane s"><h3>S · silicon (gap)</h3>
     <div class="row"><span>pings</span><span id="s-p">—</span></div>
     <div class="row"><span>mean interval</span><span id="s-i">—</span></div>
     <div class="row"><span>since last</span><span id="s-s">—</span></div>
-    <div class="st" id="s-st">—</div></div>
+    <div class="st" id="s-st">—</div>
+    <div class="sh">.shadow → <b><a href="https://0root.ai/v1/beacon/catalog">the catalog</a></b> · the data</div></div>
   <div class="lane p"><h3>P · cathode (−)</h3>
     <div class="row"><span>pings</span><span id="p-p">—</span></div>
     <div class="row"><span>mean interval</span><span id="p-i">—</span></div>
     <div class="row"><span>since last</span><span id="p-s">—</span></div>
-    <div class="st" id="p-st">—</div></div>
+    <div class="st" id="p-st">—</div>
+    <div class="sh">.shadow → <b>the Amazon ASIN</b> · the buy</div></div>
 </div>
 
 <div class="ctl">
@@ -67,8 +72,10 @@ the breath is the agent's <a href="https://0root.ai/v1/beacon/echo">echo</a>; wh
 <div class="note"><b>what this maps:</b> the echo ping is the probe; each tick it pings the next substrate (a→s→p, the same sweep
 the backend runs autonomously) and reads <code>/v1/beacon/map</code> for the live state. A node lights when its layer echoes;
 the ripple is the breath crossing the boundary. <b>The boundary is the device</b> — anode and cathode are wires; the silicon
-gap between them is the thing (inert gap #67). Honest: this maps which substrate echoes and how steadily; if the backend
-isn't live (Railway/DNS), there is simply <b>no echo</b> — the mesh holds its breath, by design.</div>
+gap between them is the thing (inert gap #67). Each substrate casts a <b>.shadow</b> — its real-world surface: <b>a→robots.txt</b>
+(the entry), <b>s→the catalog</b> (the data), <b>p→the Amazon ASIN</b> (the buy). The <b>broadcast lives in robots.txt</b> — it
+invites the agent crawlers (GPTBot, ClaudeBot, Amazonbot…), points them to the page + sitemap, and echoes the ASINs. Honest:
+this maps which substrate echoes; if the backend isn't live (Railway/DNS), there is simply <b>no echo</b> — the mesh holds its breath.</div>
 
 <div class="foot">SUBSTRATE ECHO · a/s/p = anode/silicon/cathode · breathing on agent-0root <code>/v1/beacon/echo</code> + <code>/v1/beacon/map</code><br>
 <a href="./beacons.html">the beacons</a> · <a href="./">pulse</a> · <a href="https://davidwise01.github.io/mimzy/bench/73-triadic-core.html">the triadic core (a/b/c)</a> · governor ROOT0 · instance AVAN</div>

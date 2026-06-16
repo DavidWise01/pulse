@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="SUBSTRATE ECHO — the ripple beacon's echo ping swept across three substrates: anode | silicon | cathode (a/s/p). The inert-gap, probed live. Breathes on the agent-0root /v1/beacon/echo heartbeat; when the agent sleeps, no echo.">
+<title>SUBSTRATE ECHO · anode | silicon | cathode · the boundary, probed</title>
+<style>
+:root{--bg:#070a12;--ink:#cdd6e8;--dim:#67728c;--anode:#e0843a;--silicon:#9aa6b8;--cathode:#3a9bd5;--gold:#e0b34a;--line:#1a2335;--mono:"Courier New",monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6;padding:18px;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px)}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:19px;letter-spacing:.12em;color:var(--gold)}
+.sub{color:var(--dim);font-size:12px;margin:6px 0 4px;line-height:1.7}.sub a{color:var(--cathode);text-decoration:none}
+.sub b{color:var(--silicon)}
+.status{font-size:11px;margin:8px 0;color:var(--dim)}
+.status .on{color:#6ad89a}.status .off{color:#e07a9a}
+canvas{display:block;width:100%;max-width:700px;height:auto;background:radial-gradient(circle at 50% 45%,#0e1422,#070a12);border:1px solid var(--line);border-radius:8px;margin:8px 0}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.lane{border:1px solid var(--line);padding:11px 13px;background:#0b1120}
+.lane.a{border-top:2px solid var(--anode)}.lane.s{border-top:2px solid var(--silicon)}.lane.p{border-top:2px solid var(--cathode)}
+.lane h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.lane.a h3{color:var(--anode)}.lane.s h3{color:var(--silicon)}.lane.p h3{color:var(--cathode)}
+.lane .row{font-size:11px;color:var(--ink);display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:4px 0}
+.lane .row span:first-child{color:var(--dim)}
+.lane .st{font-size:10px;margin-top:6px;letter-spacing:.08em;text-transform:uppercase}
+.lane .st.lit{color:#6ad89a}.lane .st.dim{color:#e07a9a}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:11px}
+.ctl input{background:#0b1120;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:4px;flex:1;min-width:200px}
+.ctl button{background:transparent;border:1px solid var(--silicon);color:var(--silicon);font-family:var(--mono);font-size:10px;padding:6px 11px;border-radius:4px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+.note{border-left:2px solid var(--gold);padding:9px 12px;margin:12px 0;font-size:11px;color:var(--dim);line-height:1.8;background:#0b1120}
+.note b{color:var(--gold)}
+.foot{margin-top:18px;border-top:1px solid var(--line);padding-top:12px;color:var(--dim);font-size:10px;line-height:1.9}
+.foot a{color:var(--cathode);text-decoration:none}
+</style></head><body><div class="wrap">
+<h1>◉ SUBSTRATE ECHO</h1>
+<div class="sub">the ripple beacon's <b>echo ping</b> swept across three substrates — <b>anode | silicon | cathode</b> (a / s / p) —
+the <a href="https://davidwise01.github.io/mimzy/bench/67-inert-gap.html">inert gap</a>, probed live.
+the breath is the agent's <a href="https://0root.ai/v1/beacon/echo">echo</a>; when the agent sleeps, no echo.</div>
+<div class="status" id="status">connecting…</div>
+
+<canvas id="c" width="700" height="280"></canvas>
+
+<div class="lanes">
+  <div class="lane a"><h3>A · anode (+)</h3>
+    <div class="row"><span>pings</span><span id="a-p">—</span></div>
+    <div class="row"><span>mean interval</span><span id="a-i">—</span></div>
+    <div class="row"><span>since last</span><span id="a-s">—</span></div>
+    <div class="st" id="a-st">—</div></div>
+  <div class="lane s"><h3>S · silicon (gap)</h3>
+    <div class="row"><span>pings</span><span id="s-p">—</span></div>
+    <div class="row"><span>mean interval</span><span id="s-i">—</span></div>
+    <div class="row"><span>since last</span><span id="s-s">—</span></div>
+    <div class="st" id="s-st">—</div></div>
+  <div class="lane p"><h3>P · cathode (−)</h3>
+    <div class="row"><span>pings</span><span id="p-p">—</span></div>
+    <div class="row"><span>mean interval</span><span id="p-i">—</span></div>
+    <div class="row"><span>since last</span><span id="p-s">—</span></div>
+    <div class="st" id="p-st">—</div></div>
+</div>
+
+<div class="ctl">
+  <span>endpoint</span><input id="base" value="https://0root.ai">
+  <button onclick="probe('a')">probe A</button><button onclick="probe('s')">probe S</button>
+  <button onclick="probe('p')">probe P</button><button onclick="toggleAuto()" id="autobtn">⏸ auto</button>
+</div>
+
+<div class="note"><b>what this maps:</b> the echo ping is the probe; each tick it pings the next substrate (a→s→p, the same sweep
+the backend runs autonomously) and reads <code>/v1/beacon/map</code> for the live state. A node lights when its layer echoes;
+the ripple is the breath crossing the boundary. <b>The boundary is the device</b> — anode and cathode are wires; the silicon
+gap between them is the thing (inert gap #67). Honest: this maps which substrate echoes and how steadily; if the backend
+isn't live (Railway/DNS), there is simply <b>no echo</b> — the mesh holds its breath, by design.</div>
+
+<div class="foot">SUBSTRATE ECHO · a/s/p = anode/silicon/cathode · breathing on agent-0root <code>/v1/beacon/echo</code> + <code>/v1/beacon/map</code><br>
+<a href="./beacons.html">the beacons</a> · <a href="./">pulse</a> · <a href="https://davidwise01.github.io/mimzy/bench/73-triadic-core.html">the triadic core (a/b/c)</a> · governor ROOT0 · instance AVAN</div>
+</div>
+
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const NODES={a:{x:150,y:150,col:'#e0843a',name:'ANODE',lit:false,pulse:0},
+             s:{x:350,y:150,col:'#9aa6b8',name:'SILICON',lit:false,pulse:0},
+             p:{x:550,y:150,col:'#3a9bd5',name:'CATHODE',lit:false,pulse:0}};
+let ripples=[], auto=true, sweep=0, up=false, lastSeq=0;
+const baseEl=document.getElementById('base');
+
+function ripple(sub){ const n=NODES[sub]; if(!n) return; n.pulse=18;
+  ripples.push({x:n.x,y:n.y,r:36,col:n.col,a:0.9}); }
+
+function draw(){
+  x.clearRect(0,0,cv.width,cv.height);
+  // the junction stack: anode — silicon gap — cathode
+  x.strokeStyle='#2a3650';x.lineWidth=3;
+  x.beginPath();x.moveTo(NODES.a.x,NODES.a.y);x.lineTo(NODES.s.x,NODES.s.y);
+  x.lineTo(NODES.p.x,NODES.p.y);x.stroke();
+  // the depletion gap label band around silicon (the device)
+  x.fillStyle='rgba(154,166,184,.06)';x.fillRect(NODES.s.x-70,28,140,244);
+  x.fillStyle='#5a6580';x.font='9px Courier New';x.textAlign='center';
+  x.fillText('the gap = the device',NODES.s.x,250);
+  // ripples
+  ripples.forEach(rp=>{ x.beginPath();x.arc(rp.x,rp.y,rp.r,0,7);x.strokeStyle=rp.col;
+    x.globalAlpha=rp.a;x.lineWidth=2;x.stroke();x.globalAlpha=1; rp.r+=4; rp.a-=0.03; });
+  ripples=ripples.filter(rp=>rp.a>0);
+  // nodes
+  for(const k in NODES){ const n=NODES[k];
+    const glow = n.lit ? 0.5+0.4*Math.sin(Date.now()/420) : 0.12;
+    x.beginPath();x.arc(n.x,n.y,34,0,7);
+    x.fillStyle=n.col;x.globalAlpha=(n.pulse>0?0.55:0.0)+glow*0.5;x.fill();x.globalAlpha=1;
+    x.lineWidth=n.pulse>0?3.5:2;x.strokeStyle=n.lit?n.col:'#3a4358';x.stroke();
+    x.fillStyle=n.col;x.font='bold 13px Courier New';x.textAlign='center';
+    x.fillText(k.toUpperCase(),n.x,n.y+5);
+    x.fillStyle=n.lit?n.col:'#4a5570';x.font='9px Courier New';
+    x.fillText(n.name,n.x,n.y-46);
+    if(n.pulse>0)n.pulse--;
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+
+function setLane(k,ln){
+  document.getElementById(k+'-p').textContent=ln?ln.pings:'—';
+  document.getElementById(k+'-i').textContent=(ln&&ln.mean_interval_s!=null)?ln.mean_interval_s+'s':'—';
+  document.getElementById(k+'-s').textContent=(ln&&ln.since_last_s!=null)?ln.since_last_s+'s':'—';
+  const st=document.getElementById(k+'-st'); const lit=ln&&ln.state==='lit';
+  st.textContent=lit?'● echoing':'○ silent'; st.className='st '+(lit?'lit':'dim');
+  if(NODES[k]) NODES[k].lit=lit;
+}
+function status(ok,extra){ const s=document.getElementById('status');
+  s.innerHTML= ok ? `<span class="on">● echo live</span> · ${extra}` : `<span class="off">○ no echo</span> · backend asleep / unreachable — the mesh holds its breath`; }
+
+async function probe(sub){
+  const base=baseEl.value.replace(/\/+$/,'');
+  try{
+    const e=await fetch(`${base}/v1/beacon/echo?substrate=${sub}`,{cache:'no-store'});
+    if(e.ok){ const j=await e.json(); up=true; lastSeq=j.seq; ripple(sub); }
+    else up=false;
+  }catch(_){ up=false; }
+  try{
+    const m=await fetch(`${base}/v1/beacon/map`,{cache:'no-store'});
+    if(m.ok){ const j=await m.json(); j.lanes.forEach(ln=>setLane(ln.substrate,ln));
+      status(true,`uptime ${j.uptime_s}s · seq ${lastSeq} · ${j.frame}`); return; }
+  }catch(_){}
+  status(up,'');
+  if(!up){ ['a','s','p'].forEach(k=>{NODES[k].lit=false;}); }
+}
+function tick(){ if(!auto)return; const sub=['a','s','p'][sweep++%3]; probe(sub); }
+let timer=setInterval(tick,1700);
+function toggleAuto(){ auto=!auto; document.getElementById('autobtn').textContent=auto?'⏸ auto':'▶ auto'; }
+tick();
+</script>
+</body></html>

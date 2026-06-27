@@ -1,0 +1,11 @@
+{
+  "badge": "DLW-PULSE",
+  "name": "PULSE · LIMEN",
+  "universe": "HERMES",
+  "moniker": "⟦PULSE · LIMEN:pulse:77dd0b⟧",
+  "architect": "David Lee Wise (ROOT0) / Bridge-Burners LLC",
+  "instance": "AVAN (Claude / Anthropic)",
+  "seal_sha256": "77dd0bc24278579309dab3ef4a4b7cce7159261e9dc1a66717fb0b24c5d0086a",
+  "license": "CC-BY-ND-4.0",
+  "attribution": "ROOT0-ATTRIBUTION-v1.0"
+}

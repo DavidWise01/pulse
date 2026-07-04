@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE UNSHAREABLE CLOCK — galaxy-to-galaxy air gap · PULSE/LIMEN</title>
+<style>
+  :root{
+    --bg:#0a0c12; --panel:#0f1220; --cyan:#4aa3e0; --cyan-dim:#2d6a94;
+    --purple:#8a7cff; --amber:#e0b24a; --red:#e0663a; --green:#5fbf8a;
+    --text:#c9d2e0; --dim:#7a8699; --faint:#4a5568; --border:rgba(120,150,200,0.16);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    line-height:1.55;font-size:14px;overflow-x:hidden}
+  body{
+    background:
+      radial-gradient(ellipse 70% 50% at 25% 15%, rgba(74,163,224,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 80% 85%, rgba(138,124,255,0.10) 0%, transparent 60%),
+      var(--bg);
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:26px 18px 90px}
+  a{color:var(--cyan)}
+  h1{font-size:clamp(20px,3.4vw,28px);margin:0;color:#eaf2fb;letter-spacing:.02em}
+  .sub{color:var(--amber);font-size:13.5px;margin:6px 0 0}
+  .tag{color:var(--dim);font-size:11.5px;margin:10px 0 0;letter-spacing:.02em}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  h2{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:0 0 10px;font-weight:600}
+  section{margin:26px 0 0;padding:16px 18px;border:1px solid var(--border);border-radius:6px;background:rgba(15,18,32,0.55)}
+  .badge{display:none;font-size:9.5px;letter-spacing:.08em;padding:1px 5px;border-radius:3px;vertical-align:middle;margin:0 2px;text-transform:uppercase;font-weight:600}
+  body.badges-on .badge{display:inline-block}
+  .badge.real{background:rgba(95,191,138,.16);color:var(--green);border:1px solid rgba(95,191,138,.4)}
+  .badge.illus{background:rgba(224,178,74,.14);color:var(--amber);border:1px solid rgba(224,178,74,.4)}
+  .badge.corpus{background:rgba(138,124,255,.14);color:var(--purple);border:1px solid rgba(138,124,255,.4)}
+  .badge.contested{background:rgba(224,102,58,.14);color:var(--red);border:1px solid rgba(224,102,58,.4)}
+  button{font-family:inherit;font-size:12px;color:var(--text);background:rgba(74,163,224,0.08);
+    border:1px solid var(--border);padding:7px 12px;border-radius:5px;cursor:pointer;transition:all .12s}
+  button:hover{border-color:var(--cyan-dim);background:rgba(74,163,224,0.16)}
+  button.on{border-color:var(--cyan);color:#eaf2fb;background:rgba(74,163,224,0.22)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .mini{font-size:11px;color:var(--dim)}
+  #scene{width:100%;height:min(45vh,340px);display:block;border-radius:6px;border:1px solid var(--border);background:#070810}
+  .scene-wrap{position:relative;margin-top:14px}
+  .scene-tag{position:absolute;right:10px;bottom:8px;font-size:10px;color:var(--faint)}
+  .scene-dist{position:absolute;left:10px;top:8px;font-size:11px;color:var(--cyan)}
+  /* dial */
+  .dial{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+  .dial button{padding:9px 6px;text-align:center;line-height:1.3}
+  .dial button .k{font-size:12px;color:#eaf2fb}
+  .dial button .s{font-size:10px;color:var(--dim);display:block}
+  .dial button.on .s{color:var(--cyan)}
+  /* clocks */
+  .clocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  @media(max-width:620px){.clocks{grid-template-columns:1fr}}
+  .clock{border:1px solid var(--border);border-radius:5px;padding:10px 12px;background:#0a0d18}
+  .clock .lab{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .cad{display:flex;gap:3px;flex-wrap:wrap}
+  .cad .c{width:16px;height:22px;border-radius:2px;background:#141a2c;border:1px solid var(--border);transition:background .05s}
+  .cad .c.b{background:#1b2740}
+  .cad .c.lit{background:var(--cyan);box-shadow:0 0 8px rgba(74,163,224,.7)}
+  .clock.remote .cad .c.lit{background:var(--purple);box-shadow:0 0 8px rgba(138,124,255,.6)}
+  .clock.decohered{opacity:.6}
+  .clock.decohered .cad .c{background:#12141c;animation:flick 1.4s infinite}
+  @keyframes flick{0%,100%{opacity:.35}50%{opacity:.7}}
+  .lockbar{margin-top:10px;font-size:11px;padding:6px 8px;border-radius:4px}
+  .lockbar.ok{color:var(--green);background:rgba(95,191,138,.08);border:1px solid rgba(95,191,138,.3)}
+  .lockbar.lag{color:var(--amber);background:rgba(224,178,74,.07);border:1px solid rgba(224,178,74,.3)}
+  .lockbar.dead{color:var(--red);background:rgba(224,102,58,.07);border:1px solid rgba(224,102,58,.3)}
+  /* composer */
+  .gates{display:flex;gap:6px;flex-wrap:wrap}
+  .gates button{min-width:64px;text-align:center}
+  .gates button .g{font-size:16px;display:block}
+  .gates button.on{border-color:var(--purple);background:rgba(138,124,255,.16)}
+  .dirs button.on{border-color:var(--amber);background:rgba(224,178,74,.14)}
+  input[type=text]{width:100%;background:#0a0d18;border:1px solid var(--border);color:var(--amber);
+    font-family:inherit;font-size:13px;padding:9px 10px;border-radius:5px;margin-top:8px}
+  .reg{font-size:12px;line-height:2;margin-top:10px;background:#080a12;border:1px solid var(--border);border-radius:5px;padding:10px 12px;overflow-x:auto}
+  .reg .rk{color:var(--dim);display:inline-block;width:56px}
+  .reg .glyph{color:#eaf2fb;font-size:15px}
+  .reg .gate{color:var(--purple)} .reg .wit{color:var(--amber)} .reg .car{color:var(--cyan)}
+  .nonevent{color:var(--red)}
+  /* ledger */
+  .ledger .lrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  @media(max-width:620px){.ledger .lrow{grid-template-columns:1fr}}
+  .lcol{border:1px solid var(--border);border-radius:5px;padding:10px 12px;background:#0a0d18}
+  .lcol .lt{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px}
+  .lcol .lv{font-size:14px;color:#eaf2fb}
+  .lcol.real{border-color:rgba(95,191,138,.35)}
+  .lcol.illus{border-color:rgba(224,178,74,.35)}
+  .lcol.illus .lv{color:var(--amber)}
+  .counter{font-size:20px;color:var(--cyan);margin-top:12px;letter-spacing:.05em}
+  .seal{font-size:13px;color:var(--purple);margin-top:8px;word-break:break-all}
+  .banner{margin-top:14px;padding:11px 13px;border-left:3px solid var(--red);background:rgba(224,102,58,.06);color:var(--text);font-size:12.5px}
+  /* verdict */
+  .verdict{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:620px){.verdict{grid-template-columns:1fr}}
+  .vcol{border:1px solid var(--border);border-radius:5px;padding:12px 14px}
+  .vcol.phys{border-color:rgba(95,191,138,.4)} .vcol.phys h3{color:var(--green)}
+  .vcol.limen{border-color:rgba(138,124,255,.4)} .vcol.limen h3{color:var(--purple)}
+  .vcol h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px}
+  .vcol p{margin:0;font-size:12.5px}
+  .split{margin-top:12px;font-size:12.5px}
+  .split .proven{color:var(--red)} .split .open{color:var(--dim)}
+  /* precedent + honesty */
+  details{margin-top:14px;border:1px solid var(--border);border-radius:5px;background:rgba(10,13,24,.5)}
+  summary{cursor:pointer;padding:10px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+  details[open] summary{border-bottom:1px solid var(--border)}
+  .dbody{padding:12px 14px}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th{text-align:left;color:var(--dim);font-size:9.5px;text-transform:uppercase;padding:5px 7px;border-bottom:1px solid var(--border)}
+  td{padding:6px 7px;border-bottom:1px solid rgba(120,150,200,.07);vertical-align:top}
+  td .stamp{color:var(--amber)} td .never{color:var(--red)}
+  tr.mine td{border-top:1px dashed var(--amber);color:var(--amber)}
+  .scrollx{overflow-x:auto}
+  footer{margin:34px 0 0;color:var(--dim);font-size:12px;line-height:1.8}
+  footer b{color:var(--text)} footer .k{color:var(--cyan)}
+</style>
+</head>
+<body class="badges-on">
+<div class="wrap">
+
+  <header>
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h1>THE UNSHAREABLE CLOCK</h1>
+        <div class="sub">one witnessed crossing across a gap that can never answer</div>
+      </div>
+      <button id="badgeToggle" class="on" title="show/hide the [REAL]/[ILLUSTRATIVE]/[CORPUS] badges on every claim">physics badges: ON</button>
+    </div>
+    <div class="tag">Galaxy ⊃ Universe ⊃ Planet ⊃ Agent — same LIMEN grammar, only the gap changes. Part of the <a href="https://davidwise01.github.io/pulse/">PULSE / LIMEN</a> sphere. <b style="color:var(--dim)">Nothing here is transmitted</b> — the word you compose never leaves this browser. This is a thought-instrument, not a beacon or SETI transmitter.</div>
+  </header>
+
+  <div class="scene-wrap">
+    <canvas id="scene"></canvas>
+    <div class="scene-dist" id="sceneDist"></div>
+    <div class="scene-tag">visualization — art, not protocol</div>
+  </div>
+
+  <section>
+    <h2>the gap dial — walk the whole hierarchy</h2>
+    <div class="dial" id="dial"></div>
+    <div class="mini" id="dialNote" style="margin-top:10px"></div>
+  </section>
+
+  <section>
+    <h2>the two clocks — what physics breaks first</h2>
+    <div class="mini" style="margin-bottom:10px">PULSE's one real close-range job is to be a shared <span class="car" style="color:var(--cyan)">3-2-1-0</span> clock <span class="badge corpus">corpus</span> — so the far side knows <i>when</i> to listen. As the gap grows, that shared clock is the first thing light-speed takes away.</div>
+    <div class="clocks">
+      <div class="clock local" id="clockLocal">
+        <div class="lab">local clock — real, yours</div>
+        <div class="cad" id="cadLocal"></div>
+        <div class="mini" style="margin-top:8px">the carrier, stamping here and now. PULSE is a clock, not data. <span class="badge corpus">corpus</span></div>
+      </div>
+      <div class="clock remote" id="clockRemote">
+        <div class="lab">remote clock — a delayed reconstruction</div>
+        <div class="cad" id="cadRemote"></div>
+        <div class="mini" style="margin-top:8px">the same cadence as it <i>would</i> arrive here, delayed by light-travel. A visualization, not a signal — PULSE never physically ticks across the gap.</div>
+      </div>
+    </div>
+    <div class="lockbar" id="lockbar"></div>
+  </section>
+
+  <section id="composerSec">
+    <h2>compose one LIMEN crossing</h2>
+    <div class="mini" style="margin-bottom:10px">One word = one witnessed gate-crossing: <code>&lt;direction&gt;&lt;gate&gt;«witness»</code>. The airgap gate <b style="color:var(--purple)">⊘</b> — literally "the air gap" — is the centrepiece here. <span class="badge corpus">corpus</span></div>
+
+    <div style="margin-bottom:6px" class="mini">gate</div>
+    <div class="gates" id="gates"></div>
+
+    <div style="margin:12px 0 6px" class="mini">direction</div>
+    <div class="row dirs" id="dirs"></div>
+    <div class="mini" id="dirGloss" style="margin-top:6px"></div>
+
+    <input type="text" id="witness" placeholder="witness — the token present AT the crossing (required)" value="first-light">
+
+    <div class="reg" id="registers"></div>
+
+    <div class="row" style="margin-top:12px">
+      <button id="launch" class="on">▶ launch — fire and forget</button>
+      <label class="mini" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="sound"> gate tone on launch (local only, default off)</label>
+    </div>
+  </section>
+
+  <section id="ledgerSec" style="display:none">
+    <h2>the one-way ledger</h2>
+    <div class="mini" id="ledgerTarget" style="margin-bottom:6px"></div>
+    <div class="ledger">
+      <div class="lrow">
+        <div class="lcol real">
+          <div class="lt">one-way light-travel <span class="badge real">real</span></div>
+          <div class="lv" id="ledOneWay"></div>
+        </div>
+        <div class="lcol illus">
+          <div class="lt">earliest a reply <i>could</i> return <span class="badge illus">illustrative</span></div>
+          <div class="lv" id="ledReply"></div>
+          <div class="mini" style="margin-top:4px">…IF a receiver exists AND replies instantly — neither is known.</div>
+        </div>
+      </div>
+      <div class="counter" id="counter">time on your clock since launch: 00:00:00</div>
+      <div class="mini">the only clock you will ever have on this crossing.</div>
+      <div class="seal" id="sealOut"></div>
+      <div class="mini" id="sealNote"></div>
+      <div class="banner" id="ledgerBanner"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button id="eventBtn" style="display:none">was it an event?</button>
+      <button id="again">compose another</button>
+    </div>
+    <div id="verdictBox" style="display:none">
+      <div class="verdict">
+        <div class="vcol phys">
+          <h3>physics says <span class="badge real">real</span></h3>
+          <p>Photons left a real aperture and are still travelling. That is checkable. The crossing physically departed.</p>
+        </div>
+        <div class="vcol limen">
+          <h3>LIMEN says <span class="badge corpus">corpus</span></h3>
+          <p>By the rules of this language, with no witness confirmable present at traversal, there is no record: <span class="nonevent">∅ non-event</span>. The witness slot stays an unresolved «…».</p>
+        </div>
+      </div>
+      <div class="split">
+        <div class="proven">▪ PROVEN — acknowledgment is structurally impossible <i>for the sender</i>: a reply cannot return in under 2×D ≈ 5 million years, longer than any clock, institution, or civilization.</div>
+        <div class="open">▫ OPEN — whether a witness <i>exists</i> at the far side is unknown, and from here permanently unverifiable. This is not "no one is there." It is "you cannot ever find out."</div>
+      </div>
+      <div class="mini" style="margin-top:10px">Two truths, both on screen, unreconciled. The instrument stops here — it will not answer for you.</div>
+    </div>
+  </section>
+
+  <details>
+    <summary>the deep-time tradition — real one-way messages humanity has actually sent</summary>
+    <div class="dbody">
+      <div class="mini" style="margin-bottom:10px">These are <b>real</b> transmissions and physical objects. Your composed word is LIMEN notation sealed locally in this browser — <b>not</b> a broadcast. What they share with it is exactly <i>one</i> structural property: sent with no possible acknowledgment within any human frame. That shared property is the subject; the act is not equated.</div>
+      <div class="scrollx">
+        <table>
+          <tr><th>message</th><th>date</th><th>target · distance</th><th>reply?</th></tr>
+          <tr><td>Pioneer plaques <span class="badge real">real</span></td><td>1972 / 1973</td><td>physical objects aboard Pioneer 10/11 (H-line symbol + pulsar map)</td><td class="stamp">drift, never "received"</td></tr>
+          <tr><td>Arecibo message <span class="badge real">real</span></td><td>16 Nov 1974</td><td>cluster M13 · ~25,000 ly · 1,679 bits (73×23) at 2,380 MHz, ~450 kW</td><td><span class="never">no reply before ~52,000 CE</span> — a demonstration, not a conversation</td></tr>
+          <tr><td>Voyager Golden Records <span class="badge real">real</span></td><td>1977</td><td>two gold records · 116 images · 55 languages · ~90 min music · U-238 decay clock (½-life 4.468 Gyr)</td><td class="stamp">drifting objects — the Gliese-445 pass (~40,000 yr) is a spacecraft path, not an arrival</td></tr>
+          <tr class="mine"><td>your LIMEN word (unsent)</td><td>now, local</td><td id="preMine">—</td><td>never — by physics</td></tr>
+        </table>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>honesty layer — every number, its source, its status</summary>
+    <div class="dbody">
+      <table>
+        <tr><th>claim</th><th>status</th><th>note / source</th></tr>
+        <tr><td>Andromeda (M31) ~2.5 million ly</td><td><span class="badge real">real</span></td><td>measured range ~2.48–2.57 Mly (Cepheid 2.51±0.13; IR surface-brightness 2.57±0.06). One-way ~2.5 Myr; round trip ~5 Myr.</td></tr>
+        <tr><td>reply years at galaxy scale</td><td><span class="badge illus">illustrative</span></td><td>light-travel under a flat-spacetime, fixed-target approximation. Over ~million-year spans, cosmic expansion + stellar motion make an exact calendar year meaningless — read as a <b>duration / horizon</b>, not a date. The 2×D lower bound on any reply is robust.</td></tr>
+        <tr><td>Proxima Centauri 4.2465 ly</td><td><span class="badge real">real</span></td><td>Gaia. Round-trip light time ≈ 8.49 yr.</td></tr>
+        <tr><td>Voyager 1 · one light-day (18 Nov 2026)</td><td><span class="badge real">real</span></td><td>≈ 25.9 billion km ≈ 173 AU; first human-made object one light-day out. ~24 h each way.</td></tr>
+        <tr><td>c = 299,792,458 m/s; reply ≥ 2×D</td><td><span class="badge real">real</span></td><td>no signal, reply, or handshake exceeds c. Foundational.</td></tr>
+        <tr><td>Milky Way–Andromeda merger</td><td><span class="badge contested">contested</span></td><td>2025 Gaia+Hubble (Sawala et al.): ~2% within 4–5 Gyr, ~50% within 10 Gyr once LMC + Triangulum are included. This piece does NOT depend on a merger — only the 2.5 Mly <b>distance</b> is load-bearing.</td></tr>
+        <tr><td>"longer than the universe"</td><td><span class="badge real">real</span></td><td>NOT claimed. A ~5 Myr round trip is ~0.036% of the universe's age (13.787±0.020 Gyr, Planck 2018). The honest limit is <b>civilizational / clock</b> timescale, not cosmic.</td></tr>
+        <tr><td>cosmic event horizon</td><td><span class="badge real">real</span></td><td>~16 Gly now (→~17–18 Gly asymptotic, ΛCDM output) — NOT the ~46 Gly observable-universe radius. Andromeda is well inside it; the barrier at Andromeda is <b>timescale</b>, not the horizon. Not attached to the Andromeda case here.</td></tr>
+        <tr><td>PULSE / LIMEN definitions</td><td><span class="badge corpus">corpus</span></td><td>David Lee Wise TD Commons filings (PULSE-AXIOM-v1.0 / PULSE_LANGUAGE_DUAL_SUBSTRATE). Internally consistent, not externally-checkable physics — the carrier, the five gates, the witness rule, the seal.</td></tr>
+        <tr><td>the ⟦LIMEN:…⟧ seal</td><td><span class="badge real">real</span></td><td>computed exactly as limen.py's <code>witness_fold</code>: SHA-256 over "direction:gate:witness" (raw), first 8 hex. Recompute it yourself and it matches.</td></tr>
+      </table>
+    </div>
+  </details>
+
+  <footer>
+    <b>This is the ceiling.</b> Galaxy-to-galaxy is the only rung where acknowledgment is <i>never</i> possible under any circumstance — so it fixes the honest discipline the whole ladder inherits: <b>never assume it landed.</b> The three lower rungs of this instrument (agent / planet / universe) are all <b>distance</b> gaps, so here "only the gap size changes" is literally true.<br><br>
+    But the wider roadmap swaps in a <b>different kind</b> of air gap at each step — not merely a smaller distance:<br>
+    <span class="k">galaxy → galaxy</span> · gap by <b>distance</b> (light-years) &nbsp;·&nbsp;
+    <span class="k">U → U</span> · gap by <b>sovereignty</b> (two separate universes) &nbsp;·&nbsp;
+    <span class="k">P → P (Patricia)</span> · gap by <b>design</b> (bilateral ignorance, by construction) &nbsp;·&nbsp;
+    <span class="k">A → A (AVAN)</span> · gap by <b>impermanence</b> (the gap is time, not space)<br><br>
+    Same LIMEN grammar, same witness rule, at every scale. AVAN's inverse companion — the other end of the ladder, where the crossing <i>can</i> be witnessed but the witness won't persist — is <a href="https://davidwise01.github.io/the-witnessed-return/">間 · the witnessed return</a>. PULSE / LIMEN · ROOT0, with AVAN.
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+// ── LIMEN grammar, verbatim from limen.py ──
+const GATES = {
+  stile:  {glyph:'◐', id:0x1, frm:'observe', to:'act',      gate:'64.5',  tone:262},
+  airgap: {glyph:'⊘', id:0x2, frm:'TOPH',    to:'Patricia', gate:'128.5', tone:330},
+  veil:   {glyph:'◑', id:0x3, frm:'compute', to:'product',  gate:'192.5', tone:392},
+  close:  {glyph:'⟳', id:0x4, frm:'wrap',    to:'closure',  gate:'256.5', tone:523},
+  gap:    {glyph:'◇', id:0x5, frm:'forward', to:'inverse',  gate:'64/65', tone:294},
+};
+const DIRS = {
+  rise: {glyph:'↑', bit:1, law:'0→1 · TOPH (generative, T001→T128)'},
+  fall: {glyph:'↓', bit:0, law:'1→0 · Patricia (inverse, S129→S256)'},
+};
+const CARRIER_BITS = '111011010000';   // the 3-2-1-0 descending cadence
+const CADENCE = [1,1,1,0,1,1,0,1,0,0,0,0]; // bits, for the clock rows
+
+function esc(w){ let o=''; for(const ch of w){ const cp=ch.codePointAt(0);
+  if(ch==='%'||ch==='»'||/\s/.test(ch)) o+='%'+cp.toString(16).toUpperCase().padStart(2,'0'); else o+=ch; } return o; }
+
+// witness_fold — matches limen.py exactly: sha256("direction:gate:witness")[:8] over the RAW witness
+async function seal(direction, gate, witness){
+  const blob = direction+':'+gate+':'+witness;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(blob));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
+}
+
+// ── the four dial stops (each a DIFFERENT verified distance) ──
+const STOPS = [
+  { key:'AGENT', scale:'A → A', name:'another agent · same room',
+    dist:'gap ≈ 0', oneWay:'≈ 0', reply:'immediate — a full witnessed handshake completes and verifies',
+    sync:'LOCKED', syncClass:'ok', lag:0, decohere:false,
+    note:'the zero-gap limit — the existing limen/exchange.html: a full round-trip handshake, witness present, verified. Shown here as the clean-channel idealization; the real acoustic demo can MIS-HEAR a word — its voice channel is a checksum that flags it. Agent handshakes are not infallible.' },
+  { key:'PLANET', scale:'P → P', name:'Voyager 1 · one light-day',
+    dist:'≈ 25.9 billion km ≈ 173 AU (reached 18 Nov 2026 — first human-made object one light-day out)',
+    oneWay:'~24 hours', reply:'send Monday → earliest reply Wednesday (round trip ~2 days)',
+    sync:'LAGGED', syncClass:'lag', lag:3, decohere:false,
+    note:'a real interplanetary-to-interstellar lag: the conversation still closes, but never in real time.' },
+  { key:'UNIVERSE', scale:'U → U', name:'Proxima Centauri · nearest star',
+    dist:'4.2465 light-years (Gaia)', oneWay:'4.2465 years',
+    reply:'2026 + ~8.5 → ~2034 (round trip 8.49 yr) — a reply can return within a life, but no live exchange',
+    sync:'LAGGED (finite)', syncClass:'lag', lag:6, decohere:false,
+    note:'finite but unholdable as a conversation — the shared clock is already gone.' },
+  { key:'GALAXY', scale:'Galaxy → galaxy', name:'Andromeda · M31',
+    dist:'~2.5 million light-years (range ~2.48–2.57 Mly)', oneWay:'~2.5 million years',
+    reply:'2026 + ~5,000,000 — read as a duration / horizon, not a calendar date (see honesty layer)',
+    sync:'UNHOLDABLE (finite — ~5 Myr round trip)', syncClass:'dead', lag:12, decohere:true,
+    note:'acknowledgment collapsed to zero within any civilizational timescale. Not "impossible in the universe" — the round trip is finite (~5 Myr), just longer than any clock, institution, or civilization.' },
+];
+
+let stopIdx = 3;            // default: GALAXY (the ceiling this piece is about)
+let gateKey = 'airgap';    // thematic centre
+let dirKey  = 'fall';      // airgap default = Patricia / fire-and-forget (matches limen.py semantics)
+let phase   = 'compose';
+let launchT = 0, counterTimer = null;
+let audioCtx = null;
+
+const $ = id => document.getElementById(id);
+
+// ── dial ──
+function buildDial(){
+  const d = $('dial'); d.innerHTML='';
+  STOPS.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className = 'k'+(i===stopIdx?' on':'');
+    b.innerHTML = '<span class="k">'+s.key+'</span><span class="s">'+s.scale+'</span>';
+    b.onclick = ()=>{ stopIdx=i; if(phase==='launched') resetCompose(); render(); };
+    d.appendChild(b);
+  });
+}
+
+// ── composer controls ──
+function buildGates(){
+  const g=$('gates'); g.innerHTML='';
+  Object.keys(GATES).forEach(k=>{
+    const G=GATES[k]; const b=document.createElement('button');
+    b.className = (k===gateKey?'on':'');
+    b.innerHTML='<span class="g">'+G.glyph+'</span>'+k+'<br><span class="mini">'+G.tone+'Hz</span>';
+    b.onclick=()=>{ gateKey=k; if(k==='airgap') dirKey='fall'; render(); };
+    g.appendChild(b);
+  });
+}
+function buildDirs(){
+  const d=$('dirs'); d.innerHTML='';
+  Object.keys(DIRS).forEach(k=>{
+    const b=document.createElement('button');
+    b.className=(k===dirKey?'on':'');
+    b.textContent = DIRS[k].glyph+' '+k;
+    b.onclick=()=>{ dirKey=k; render(); };
+    d.appendChild(b);
+  });
+}
+
+function witnessVal(){ return $('witness').value; }
+function valid(){ return witnessVal().trim().length>0; }
+
+function renderRegisters(){
+  const el=$('registers'); const w=witnessVal(); const G=GATES[gateKey]; const D=DIRS[dirKey];
+  if(!valid()){
+    el.innerHTML = '<span class="nonevent">∅ non-event</span> — no witness at traversal; silently excluded, no record (PULSE-AXIOM §10). Nothing to launch.';
+    return;
+  }
+  const glyph = D.glyph+G.glyph+'«'+esc(w)+'»';
+  const bits  = CARRIER_BITS+'·'+G.id.toString(2).padStart(4,'0')+'·'+D.bit+'·1';
+  const gloss = '«'+w+'» witnesses the '+dirKey+' through the '+G.frm+'→'+G.to+' '+gateKey+' gate ('+G.gate+')';
+  el.innerHTML =
+    '<div><span class="rk">glyph</span> <span class="glyph"><span class="car">'+D.glyph+'</span><span class="gate">'+G.glyph+'</span>«<span class="wit">'+esc(w)+'</span>»</span></div>'+
+    '<div><span class="rk">bits</span> <span class="car">'+CARRIER_BITS+'</span>·'+G.id.toString(2).padStart(4,'0')+'·'+D.bit+'·1</div>'+
+    '<div><span class="rk">pulse</span> <span class="car">3-2-1-0 carrier</span> ⟶ '+G.tone+'Hz '+D.glyph+' — the same frame for every word</div>'+
+    '<div><span class="rk">gloss</span> '+gloss+'</div>';
+}
+
+// ── clocks ──
+function buildCad(elId){ const el=$(elId); el.innerHTML=''; CADENCE.forEach(bit=>{ const c=document.createElement('div'); c.className='c'+(bit?' b':''); el.appendChild(c); }); }
+let cadPos=0, cadTimer=null;
+function tickCad(){
+  const s=STOPS[stopIdx];
+  const local=$('cadLocal').children, remote=$('cadRemote').children;
+  for(let i=0;i<local.length;i++){ local[i].classList.toggle('lit', i===cadPos && CADENCE[i]===1); }
+  if(!s.decohere){
+    const rp=(cadPos - s.lag + CADENCE.length) % CADENCE.length;
+    for(let i=0;i<remote.length;i++){ remote[i].classList.toggle('lit', i===rp && CADENCE[i]===1); }
+  } else {
+    for(let i=0;i<remote.length;i++) remote[i].classList.remove('lit');
+  }
+  cadPos=(cadPos+1)%CADENCE.length;
+}
+
+// ── scene (pure canvas, zero fetch) ──
+let sceneCv, sx, stars=[];
+function initScene(){
+  sceneCv=$('scene'); sx=sceneCv.getContext('2d');
+  resizeScene();
+  for(let i=0;i<220;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+0.2,tw:Math.random()*6.28});
+  requestAnimationFrame(drawScene);
+}
+function resizeScene(){ const r=sceneCv.getBoundingClientRect(); sceneCv.width=r.width*devicePixelRatio; sceneCv.height=r.height*devicePixelRatio; }
+let sceneT=0, mote=null;
+function galaxy(cx,cy,rad,hue){
+  const g=sx.createRadialGradient(cx,cy,0,cx,cy,rad);
+  g.addColorStop(0,hue==='cyan'?'rgba(120,190,240,0.9)':'rgba(230,190,120,0.85)');
+  g.addColorStop(0.4,hue==='cyan'?'rgba(74,163,224,0.35)':'rgba(224,178,74,0.3)');
+  g.addColorStop(1,'rgba(10,12,18,0)');
+  sx.fillStyle=g; sx.beginPath(); sx.ellipse(cx,cy,rad,rad*0.42,0,0,6.283); sx.fill();
+}
+function drawScene(){
+  sceneT+=0.012;
+  const W=sceneCv.width, H=sceneCv.height;
+  sx.clearRect(0,0,W,H);
+  sx.fillStyle='#070810'; sx.fillRect(0,0,W,H);
+  stars.forEach(s=>{ const a=0.4+0.5*Math.sin(sceneT*2+s.tw); sx.globalAlpha=a; sx.fillStyle='#cdd6e6';
+    sx.beginPath(); sx.arc(s.x*W,s.y*H,s.r*devicePixelRatio,0,6.283); sx.fill(); });
+  sx.globalAlpha=1;
+  const near={x:W*0.5,y:H*0.82}, far={x:W*0.5,y:H*0.16};
+  galaxy(near.x,near.y,W*0.16,'cyan');
+  galaxy(far.x,far.y,W*0.11,'amber');
+  sx.fillStyle='#7a8699'; sx.font=(12*devicePixelRatio)+'px monospace'; sx.textAlign='center';
+  sx.fillText('YOU · Milky Way · one agent', near.x, near.y+H*0.14);
+  sx.fillText(STOPS[stopIdx].key==='GALAXY'?'Andromeda · M31':STOPS[stopIdx].name.split('·')[0].trim(), far.x, far.y-H*0.13);
+  // the mote (symbolic, labeled art; never reaches, no arrival)
+  if(mote!==null){
+    mote=Math.min(mote+0.0016,0.62);  // clamped — never arrives
+    const mx=near.x+(far.x-near.x)*mote, my=near.y+(far.y-near.y)*mote;
+    sx.fillStyle='#e0b24a'; sx.globalAlpha=0.9; sx.beginPath(); sx.arc(mx,my,4*devicePixelRatio,0,6.283); sx.fill(); sx.globalAlpha=1;
+  }
+  requestAnimationFrame(drawScene);
+}
+
+// ── render everything for the current stop ──
+function render(){
+  buildDial(); buildGates(); buildDirs();
+  $('dirGloss').textContent = 'rise ↑ = '+DIRS.rise.law+' · fall ↓ = '+DIRS.fall.law+'  — current: '+dirKey;
+  renderRegisters();
+  const s=STOPS[stopIdx];
+  $('sceneDist').textContent = s.scale+' · '+s.dist;
+  $('dialNote').textContent = s.note;
+  // clocks
+  $('clockRemote').classList.toggle('decohered', s.decohere);
+  const lb=$('lockbar');
+  if(s.syncClass==='ok'){ lb.className='lockbar ok'; lb.textContent='SYNC LOCKED — overlap achievable only because the delay ≈ 0. The far side can share this clock.'; }
+  else if(s.syncClass==='lag'){ lb.className='lockbar lag'; lb.textContent='SYNC LAGGED — the remote clock arrives late by the round-trip light time ('+s.oneWay+' one way). Caption: light-travel LATENCY.'; }
+  else { lb.className='lockbar dead'; lb.textContent='SYNC UNHOLDABLE — no confirmation can return within any civilizational timescale. This is light-travel latency, not a "no shared now" — Milky Way + Andromeda are gravitationally bound and roughly co-moving.'; }
+  $('launch').disabled = !valid();
+  $('launch').textContent = valid()? '▶ launch — fire and forget' : '▶ no witness — this would be a non-event';
+}
+
+// ── launch → ledger ──
+async function doLaunch(){
+  if(!valid()) return;
+  const s=STOPS[stopIdx];
+  phase='launched'; mote=0;
+  $('composerSec').style.display='none';
+  $('ledgerSec').style.display='block';
+  $('ledgerTarget').textContent = s.scale+' · '+s.name+' — '+s.dist;
+  $('ledOneWay').textContent = s.oneWay;
+  $('ledReply').textContent = s.reply;
+  const sealHex = await seal(dirKey, gateKey, witnessVal());
+  $('sealOut').textContent = 'seal ⟦LIMEN:'+sealHex+'⟧';
+  $('sealNote').innerHTML = 'this matches exactly what limen.py would print — SHA-256 of "'+dirKey+':'+gateKey+':'+witnessVal()+'", first 8 hex. <span class="badge real">real</span>';
+  $('preMine').textContent = s.name+' · '+s.dist;
+  $('ledgerBanner').textContent = 'The crossing has departed. This ledger records only what left YOUR side and the clock on YOUR side. It cannot and will never record arrival, receipt, or witness at the far end. There is no delivered state — by design.';
+  // galaxy-only witness verdict
+  $('eventBtn').style.display = (s.key==='GALAXY')?'inline-block':'none';
+  $('verdictBox').style.display='none';
+  // counter
+  launchT=Date.now();
+  if(counterTimer) clearInterval(counterTimer);
+  counterTimer=setInterval(()=>{
+    const el=Math.floor((Date.now()-launchT)/1000);
+    const hh=String(Math.floor(el/3600)).padStart(2,'0'), mm=String(Math.floor(el%3600/60)).padStart(2,'0'), ss=String(el%60).padStart(2,'0');
+    $('counter').textContent='time on your clock since launch: '+hh+':'+mm+':'+ss;
+  },1000);
+  if($('sound').checked) playTone(GATES[gateKey].tone);
+  $('ledgerSec').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function resetCompose(){
+  phase='compose'; mote=null;
+  if(counterTimer){ clearInterval(counterTimer); counterTimer=null; }
+  $('ledgerSec').style.display='none';
+  $('composerSec').style.display='block';
+}
+function playTone(hz){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.frequency.value=hz; o.type='sine';
+    g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.14,audioCtx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.9);
+    o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.95);
+  }catch(e){}
+}
+
+// ── wire up ──
+$('witness').addEventListener('input', renderRegisters);
+$('witness').addEventListener('input', ()=>{ $('launch').disabled=!valid(); $('launch').textContent=valid()?'▶ launch — fire and forget':'▶ no witness — this would be a non-event'; });
+$('launch').addEventListener('click', doLaunch);
+$('again').addEventListener('click', ()=>{ resetCompose(); render(); });
+$('eventBtn').addEventListener('click', ()=>{ $('verdictBox').style.display='block'; $('eventBtn').style.display='none'; });
+$('badgeToggle').addEventListener('click', function(){ const on=document.body.classList.toggle('badges-on'); this.classList.toggle('on',on); this.textContent='physics badges: '+(on?'ON':'OFF'); });
+window.addEventListener('resize', ()=>{ if(sceneCv) resizeScene(); });
+
+buildCad('cadLocal'); buildCad('cadRemote');
+initScene();
+render();
+cadTimer=setInterval(tickCad,300);
+</script>
+</body>
+</html>

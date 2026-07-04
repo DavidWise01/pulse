@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Severed Return — P→P · fire and forget, push to Patricia</title>
+<style>
+  :root{ --bg:#0d0a24; --bg2:#1a1240; --cyan:#4aa3e0; --purple:#8a7cff; --amber:#e0b24a; --red:#e0663a;
+    --text:#c9d2e0; --dim:#7a8699; --faint:#4a5568; --border:rgba(120,150,200,0.16); }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;line-height:1.55;font-size:14px;overflow-x:hidden}
+  body{background:radial-gradient(ellipse 60% 55% at 20% 15%,rgba(74,163,224,0.12) 0%,transparent 60%),radial-gradient(ellipse 65% 60% at 85% 90%,rgba(224,102,58,0.10) 0%,transparent 60%),linear-gradient(160deg,var(--bg2),var(--bg))}
+  .wrap{max-width:980px;margin:0 auto;padding:26px 18px 90px}
+  a{color:var(--cyan)}
+  h1{font-size:clamp(19px,3.2vw,27px);margin:0;color:#eaf2fb}
+  .sub{color:var(--amber);font-size:13px;margin:6px 0 0}
+  .tag{color:var(--dim);font-size:11.5px;margin:10px 0 0}
+  h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin:0 0 10px;font-weight:600}
+  section{margin:22px 0 0;padding:16px 18px;border:1px solid var(--border);border-radius:6px;background:rgba(26,18,64,0.4)}
+  .diode{display:grid;grid-template-columns:1fr 90px 1fr;gap:0;align-items:stretch;margin-top:12px}
+  @media(max-width:720px){.diode{grid-template-columns:1fr;gap:10px}}
+  .panel{border:1px solid var(--border);border-radius:6px;padding:14px;background:rgba(10,8,30,0.5)}
+  .panel.toph{border-color:rgba(74,163,224,.3)} .panel.patricia{border-color:rgba(138,124,255,.3)}
+  .chip{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px}
+  .chip.c{color:var(--cyan);border:1px solid rgba(74,163,224,.4)} .chip.p{color:var(--purple);border:1px solid rgba(138,124,255,.4)}
+  .seam{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:10px;color:var(--dim)}
+  .fiber{width:100%;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 8px var(--cyan);border-radius:2px}
+  .sev{width:100%;height:3px;border-top:2px dashed var(--faint);position:relative}
+  .sev::after{content:"×";position:absolute;left:50%;top:-11px;transform:translateX(-50%);color:var(--red);font-size:14px}
+  @media(max-width:720px){.seam{flex-direction:row}.fiber{width:3px;height:40px;background:linear-gradient(180deg,transparent,var(--cyan),transparent)}.sev{width:3px;height:40px;border-top:0;border-left:2px dashed var(--faint)}.sev::after{left:-6px;top:50%}}
+  input[type=text]{width:100%;background:#0a0818;border:1px solid var(--border);color:var(--amber);font-family:inherit;font-size:13px;padding:9px 10px;border-radius:5px;margin:8px 0}
+  button{font-family:inherit;font-size:12px;color:var(--text);background:rgba(74,163,224,0.08);border:1px solid var(--border);padding:8px 13px;border-radius:5px;cursor:pointer}
+  button:hover{border-color:var(--cyan)} button.pri{background:rgba(74,163,224,0.2);border-color:var(--cyan);color:#eaf2fb} button:disabled{opacity:.4;cursor:not-allowed}
+  .gates{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+  .gates button{font-size:11px;padding:6px 9px} .gates button.on{border-color:var(--purple);background:rgba(138,124,255,.16);color:#eaf2fb}
+  .ledrow{font-size:11px;padding:5px 0;border-bottom:1px solid rgba(120,150,200,.08)}
+  .ledrow .s{color:var(--amber)} .ledrow .u{color:var(--red)}
+  .counter{font-size:13px;color:var(--amber);margin-top:8px}
+  .recv{font-size:12px;color:var(--dim);margin-top:8px;min-height:40px}
+  .recv .ok{color:var(--cyan)} .recv .ne{color:var(--red)}
+  .label{font-size:11px;color:var(--dim);border-left:2px solid var(--faint);padding:6px 11px;margin:10px 0 0}
+  .label b{color:var(--text)}
+  .twolayer{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px} @media(max-width:620px){.twolayer{grid-template-columns:1fr}}
+  .tl{border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-size:12px}
+  .tl.phys{border-color:rgba(74,163,224,.3)} .tl.phys h4{color:var(--cyan)} .tl.model h4{color:var(--purple)}
+  .tl h4{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px}
+  .drift{color:var(--red);font-weight:600}
+  details{margin-top:14px;border:1px solid var(--border);border-radius:5px}
+  summary{cursor:pointer;padding:9px 13px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan)}
+  .dbody{padding:10px 13px;font-size:12px;line-height:1.7}
+  footer{margin:32px 0 0;color:var(--dim);font-size:12px;line-height:1.8} footer a{color:var(--cyan)} footer .k{color:var(--purple)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>The Severed Return</h1>
+    <div class="sub">P → P · ⊘ 128.5 · fire and forget, push to Patricia</div>
+    <div class="tag">The <b style="color:var(--purple)">Patricia</b> rung — the framework's own native air gap (TOPH → Patricia, Gate 128.5). This gap is <b>by design</b>: acknowledgment fails not because Patricia is far (delay ≈ 0) or unwilling (she receives, witnesses, and computes the matching seal) — but because the return channel is <b>engineered not to exist</b>. Part of <a href="https://davidwise01.github.io/pulse/">PULSE / LIMEN</a>. Nothing is transmitted.</div>
+    <div id="drift" style="margin-top:8px"></div>
+  </header>
+
+  <section>
+    <div class="diode">
+      <div class="panel toph">
+        <span class="chip c">TOPH ⊘→ · source / high side · rise ↑</span>
+        <div class="gates" id="gates"></div>
+        <input type="text" id="witness" value="fire-and-forget" placeholder="witness at traversal…">
+        <div id="reg" style="font-size:11.5px;line-height:1.8;margin:8px 0"></div>
+        <button class="pri" id="push">▶ push to Patricia</button>
+        <div style="margin-top:10px;max-height:150px;overflow-y:auto" id="ledger"></div>
+        <div class="counter" id="counter">acks received: 0</div>
+        <div style="font-size:10.5px;color:var(--amber);margin-top:2px">0 <b>by the model</b> — on a real data diode the reverse fiber is physically absent, so an ACK has no medium and can never return. This instrument models that.</div>
+      </div>
+      <div class="seam">
+        <div style="font-size:9px">data →</div>
+        <div class="fiber"></div>
+        <div class="sev"></div>
+        <div style="font-size:9px">ack ✕</div>
+        <div style="margin-top:6px;font-size:9px;color:var(--purple)">Gate 128.5<br>airgap ⊘</div>
+      </div>
+      <div class="panel patricia">
+        <span class="chip p">Patricia →⊘ · sink / low side</span>
+        <div class="recv" id="recv">waiting for a crossing…</div>
+        <button id="reveal" style="margin-top:10px">reveal the reverse fiber</button>
+        <div id="revealOut" style="font-size:11px;color:var(--dim);margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div class="twolayer">
+      <div class="tl phys"><h4>the physics — real</h4>no reverse fiber exists, so a TCP ACK has no medium (unidirectional gateway hardware). This is a hardware fact.</div>
+      <div class="tl model"><h4>how LIMEN names it — corpus</h4>because the return channel is absent, no witness can be present at traversal, so by the root axiom the ACK is a <span class="ne" style="color:var(--red)">∅ non-event</span>. This is the framework's naming, not a physical law.</div>
+    </div>
+    <div class="label"><b>What is one-way here:</b> the receiver (Patricia) is <b>not</b> ignorant of the payload — she reads the witness and re-seals it; one-way transfer delivers data fine. What's guaranteed is (a) the sender never learns if/what landed (no ACK) and (b) nothing leaks back high-ward. "Bilateral ignorance" here means the push-side sense: push without acknowledgment or context leakage back to the sender — <b>not</b> that Patricia learns nothing.</div>
+  </section>
+
+  <details>
+    <summary>real one-way hardware — the vendors and the mechanism</summary>
+    <div class="dbody">
+      <p><b>Data diodes</b> are genuine one-way hardware — a send-only optical transmitter on the high side and a receive-only sensor on the low side, with <b>no reverse fiber or emitter</b>. Used in nuclear, defense, electric grid, rail signaling, and OT/ICS security. TCP breaks across one (its ACKs have no return medium), so UDP or paired one-way proxies carry the data instead.</p>
+      <p><b>Vendors:</b> Owl Cyber Defense, Waterfall Security, OPSWAT (MetaDefender Optical Diode), Advenica, ST Engineering.</p>
+      <p><b>Certification nuance:</b> OPSWAT's MetaDefender Optical Diode and Owl's XDE Radium are EAL4+; there is no Common Criteria Protection Profile specifically for data diodes, so mutual-recognition caps at EAL2. (No EAL7 diode exists.)</p>
+      <p style="color:var(--dim)"><i>Secondary anchor (optional, not the diode mechanism):</i> commit-without-revealing also appears in blind signatures — Chaum, "Blind Signatures for Untraceable Payments," CRYPTO '82 (proceedings 1983).</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>the three layers (kept separate)</summary>
+    <div class="dbody">
+      <p>· <b>carrier</b> — the 3-2-1-0 clock (<code>111011010000</code>), voiced at the gate tone on push. Music, not data. The failed ACK produces <b>no sound</b> — you notice the silence where a confirmation tone would be. (We never sonify ∅.)</p>
+      <p>· <b>language</b> — the glyph line and the two independently-recomputed SHA-256 seals.</p>
+      <p>· <b>art</b> — the photons and the TOPH/Patricia framing.</p>
+    </div>
+  </details>
+
+  <footer>
+    <b>Why acknowledgment fails here:</b> the return channel is engineered <i>not to exist</i> — not far (galaxy), not refused (universe). You can confirm the data landed (the seals match) yet never receive confirmation that it landed. That asymmetry is the whole point of a data diode, and it's the gap as a <b>feature</b>.<br><br>
+    <span class="k">galaxy</span> = distance · <span class="k">universe</span> = sovereignty · <span class="k">Patricia</span> = design (here) · <span class="k">AVAN</span> = impermanence. AVAN's inverse — Patricia's side, built with no way back — is <a href="https://davidwise01.github.io/fu/">封 · the sealed mouth</a>. PULSE / LIMEN · ROOT0, with AVAN.
+  </footer>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+async function seal(dir,gate,witness){ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(dir+':'+gate+':'+witness)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8); }
+function esc(w){ let o=''; for(const ch of w){ const cp=ch.codePointAt(0); if(ch==='%'||ch==='»'||/\s/.test(ch)) o+='%'+cp.toString(16).toUpperCase().padStart(2,'0'); else o+=ch; } return o; }
+const GATES={stile:'◐',airgap:'⊘',veil:'◑',close:'⟳',gap:'◇'};
+const GNUM={stile:'64.5',airgap:'128.5',veil:'192.5',close:'256.5',gap:'64/65'};
+const GTONE={stile:262,airgap:330,veil:392,close:523,gap:294};
+let gateKey='airgap', acks=0;
+
+// startup unit-check — refuse to run on seal-impl drift
+(async function(){
+  const a=await seal('rise','airgap','fire-and-forget'), b=await seal('rise','veil','received'), c=await seal('rise','airgap','this-context');
+  if(a!=='557ab652'||b!=='f3054e89'||c!=='6a68d3ee'){
+    $('drift').innerHTML='<span class="drift">⚠ seal impl drift — the SHA-256 witness_fold does not match limen.py. Halting.</span>';
+    $('push').disabled=true;
+  }
+})();
+
+(function(){ const g=$('gates'); Object.keys(GATES).forEach(k=>{ const b=document.createElement('button'); b.className=(k===gateKey?'on':''); b.textContent=GATES[k]+' '+k+' '+GNUM[k]; b.onclick=()=>{gateKey=k; buildGates(); renderReg();}; g.appendChild(b); }); })();
+function buildGates(){ [...$('gates').children].forEach((b,i)=>{ const k=Object.keys(GATES)[i]; b.className=(k===gateKey?'on':''); }); }
+
+function valid(){ return $('witness').value.trim().length>0; }
+async function renderReg(){
+  const w=$('witness').value;
+  if(!valid()){ $('reg').innerHTML='<span style="color:var(--red)">∅ non-event — no witness at traversal, no record (§10)</span>'; $('push').disabled=true; return; }
+  const s=await seal('rise',gateKey,w);
+  $('reg').innerHTML='<span style="color:var(--cyan)">↑</span><span style="color:var(--purple)">'+GATES[gateKey]+'</span>«<span style="color:var(--amber)">'+esc(w)+'</span>» &nbsp;⟦LIMEN:'+s+'⟧';
+  $('push').disabled=false;
+}
+$('witness').addEventListener('input', renderReg);
+
+function tone(hz){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(),g=a.createGain(); o.frequency.value=hz; o.type='sine'; g.gain.setValueAtTime(0.0001,a.currentTime); g.gain.exponentialRampToValueAtTime(0.11,a.currentTime+0.02); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.35); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+0.37);}catch(e){} }
+
+$('push').addEventListener('click', async ()=>{
+  if(!valid()) return;
+  const w=$('witness').value;
+  const s=await seal('rise',gateKey,w);
+  tone(GTONE[gateKey]);   // the carrier voiced at the gate tone — on the PUSH only
+  // Patricia receives and INDEPENDENTLY recomputes
+  const rs=await seal('rise',gateKey,w);
+  const match=rs===s;
+  $('recv').innerHTML='received: <span style="color:var(--amber)">↑'+GATES[gateKey]+'«'+esc(w)+'»</span><br>independently re-sealed: ⟦LIMEN:'+rs+'⟧ — <span class="'+(match?'ok':'ne')+'">'+(match?'seals match ✓ — the one-way DATA crossing landed and is legible':'mismatch')+'</span>';
+  // ledger — sent, unacknowledged by design
+  const d=document.createElement('div'); d.className='ledrow'; d.innerHTML='<span class="s">⟦LIMEN:'+s+'⟧</span> <span class="u">sent · unacknowledged — by design</span>'; $('ledger').prepend(d);
+  // the ACK attempt: a fall back through the veil gate — collapses to ∅, IN SILENCE
+  setTimeout(()=>{ $('recv').innerHTML += '<br><span style="color:var(--dim)">Patricia\'s ACK attempt ↓◑«received» reaches the severed lane → </span><span class="ne">∅ non-event — no witness at traversal (§10). No confirmation tone; notice the silence.</span>'; }, 700);
+  $('counter').textContent='acks received: '+acks;   // stays 0
+});
+
+$('reveal').addEventListener('click',()=>{
+  $('revealOut').innerHTML='no return path exists — on a hardware diode the receive side has an optical <b>sensor only</b>; there is no fiber or emitter for the reverse direction, so a TCP ACK has no medium and cannot return. The modeled ACK (↓◑«received») is an authorial <i>metaphor</i> for that by-design silence — not a claim that the veil gate is the missing fiber. The real TOPH→Patricia crossing is airgap ⊘.';
+});
+
+renderReg();
+</script>
+</body>
+</html>
